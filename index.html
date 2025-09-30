@@ -821,6 +821,7 @@ $('.close-popup').click(function(){
 </style>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
+	  /*
 (function($){
   // Force play on first tap/click if blocked
   $('video').addClass('inlinevideo');
@@ -832,6 +833,66 @@ $('.close-popup').click(function(){
     }
   });
 })(jQuery);
+	  */
 </script>
+	<script>
+(function () {
+  // 1) Mark thumbnail videos (those inside the grid thumbnails)
+  const thumbVideos = document.querySelectorAll('.grid_thumbnails .video-box video');
+  thumbVideos.forEach(v => v.setAttribute('data-thumb', '1'));
+
+  // 2) Turn OFF autoplay for all non-thumbnail videos
+  const allVideos = document.querySelectorAll('video');
+  allVideos.forEach(v => {
+    if (!v.hasAttribute('data-thumb')) {
+      v.removeAttribute('autoplay');
+      v.preload = 'none';
+      try { v.pause(); } catch(e){}
+    } else {
+      // thumbnails should be muted + inline for mobile autoplay
+      v.muted = true;
+      v.playsInline = true;
+      v.loop = true;
+    }
+  });
+
+  // 3) IntersectionObserver — only play thumbs when visible
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(({ target, isIntersecting }) => {
+      if (isIntersecting) {
+        target.play().catch(()=>{ /* ignore blocked autoplay */ });
+      } else {
+        try { target.pause(); target.currentTime = 0; } catch(e){}
+      }
+    });
+  }, { threshold: 0.6 });
+
+  thumbVideos.forEach(v => io.observe(v));
+
+  // 4) Safety: when any ".close-popup" is clicked, pause all videos (you already do this with jQuery; this is a native backup)
+  document.querySelectorAll('.close-popup').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch(e){} });
+    });
+  });
+
+  // 5) If you have YouTube/Vimeo iframes elsewhere, force autoplay=0 unless marked data-thumb
+  const iframes = document.querySelectorAll('iframe');
+  const isVideoHost = (src) => /youtube\.com|youtu\.be|vimeo\.com/i.test(src||'');
+  iframes.forEach(f => {
+    const src = f.getAttribute('src') || '';
+    const isThumb = f.hasAttribute('data-thumb') || f.classList.contains('thumb-video');
+    if (isVideoHost(src) && !isThumb) {
+      try {
+        const u = new URL(src, location.origin);
+        u.searchParams.set('autoplay','0');
+        u.searchParams.set('playsinline','1'); // iOS behavior
+        f.setAttribute('src', u.toString());
+      } catch(e){}
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
