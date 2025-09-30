@@ -793,13 +793,29 @@
     	});
 	});
 </script>
-  <script>
-$('.close-popup').click(function(){
-  $('video').each(function(){
-    $(this).get(0).pause();
-  })
+ <script>
+$('.close-popup').on('click', function () {
+  document.querySelectorAll('video').forEach(v => {
+    const isThumb = v.closest('.grid_thumbnails') !== null;
+    if (isThumb) {
+      // make sure thumb loops resume
+      try {
+        v.muted = true;
+        v.playsInline = true;
+        v.loop = true;
+        v.currentTime = 0;
+        v.play();
+      } catch(e){}
+    } else {
+      // pause anything that was playing in the modal
+      try { v.pause(); } catch(e){}
+    }
+  });
+  // restore scroll too
+  $('body').css('overflow','visible');
 });
 </script>
+
   <style>
 /* 16:9 responsive box */
 .video-box{
