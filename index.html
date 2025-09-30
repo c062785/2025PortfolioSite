@@ -835,22 +835,7 @@ $('.close-popup').on('click', function () {
 /* If you prefer letterboxing instead of cropping, swap to: */
 /* .bg-video { object-fit: contain; background:#000; } */
 </style>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-	  /*
-(function($){
-  // Force play on first tap/click if blocked
-  $('video').addClass('inlinevideo');
-  $('body').on('click touchstart', function () {
-    var videoElement = document.getElementsByClassName('inlinevideo')[0];
-    if (!videoElement) return;
-    if (videoElement.paused) {
-      $('.inlinevideo').trigger('play');
-    }
-  });
-})(jQuery);
-	  */
-</script>
+
 	<script>
 (function () {
   // helper: is element inside .grid_thumbnails ?
@@ -890,13 +875,6 @@ $('.close-popup').on('click', function () {
 
   thumbVideos.forEach(v => io.observe(v));
 
-  // 5) Safety: when any ".close-popup" is clicked, pause all videos
-  document.querySelectorAll('.close-popup').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('video').forEach(v => { try { v.pause(); } catch(e){} });
-    });
-  });
-
   // 6) If there are YouTube/Vimeo iframes elsewhere, force autoplay=0 unless they’re thumbnails
   const isVideoHost = (src) => /youtube\.com|youtu\.be|vimeo\.com/i.test(src||'');
   document.querySelectorAll('iframe').forEach(f => {
@@ -909,6 +887,43 @@ $('.close-popup').on('click', function () {
     }
   });
 })();
+</script>
+<script>
+  // One close handler to rule them all
+  document.addEventListener('click', function(e){
+    const closeBtn = e.target.closest('.close-popup');
+    if (!closeBtn) return;
+
+    e.preventDefault();
+
+    // 1) Pause & reset any videos INSIDE the modal being closed
+    const modalRoot = closeBtn.closest('.popup-bg-2') || document;
+    modalRoot.querySelectorAll('video').forEach(v => {
+      try { v.pause(); v.currentTime = 0; } catch(e){}
+    });
+
+    // 2) Restore scroll
+    document.body.style.overflow = 'visible';
+
+    // 3) After the modal actually finishes hiding, restart thumbnail loops
+    //    (delay lets layout settle so IntersectionObserver won’t block us)
+    setTimeout(() => {
+      document.querySelectorAll('.grid_thumbnails video').forEach(v => {
+        try {
+          v.muted = true;          // iOS autoplay requirement
+          v.playsInline = true;    // inline on iOS
+          v.loop = true;
+          // Thumb may be inside Webflow bg-video wrapper; either way call play()
+          v.play().catch(() => {});
+        } catch(e){}
+      });
+
+      // Nudge IO/layout in case nothing visibly changed
+      window.dispatchEvent(new Event('resize'));
+      // Optional micro reflow nudge:
+      // document.body.getBoundingClientRect();
+    }, 250); // adjust if your Webflow close animation is longer
+  }, { passive: true });
 </script>
 
 
