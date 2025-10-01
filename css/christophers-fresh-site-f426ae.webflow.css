@@ -2661,7 +2661,7 @@ a {
 
 /* Default: add spacing from the right */
 .hero_div .img {
-  right: clamp(0px, 30vw, 40px);
+  right: clamp(0px, 5vw, 80px);
 }
 
 /* At 1240px and smaller: remove that spacing */
