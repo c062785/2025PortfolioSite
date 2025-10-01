@@ -883,15 +883,15 @@
     // 3) After the modal actually finishes hiding, restart thumbnail loops
     //    (delay lets layout settle so IntersectionObserver won’t block us)
     setTimeout(() => {
-      document.querySelectorAll('.grid_thumbnails video').forEach(v => {
-        try {
-          v.muted = true;          // iOS autoplay requirement
-          v.playsInline = true;    // inline on iOS
+      docv.playsInline = true;    // inline on iOS
           v.loop = true;
           // Thumb may be inside Webflow bg-video wrapper; either way call play()
           v.play().catch(() => {});
         } catch(e){}
-      });
+      });ument.querySelectorAll('.grid_thumbnails video').forEach(v => {
+        try {
+          v.muted = true;          // iOS autoplay requirement
+          
 
       // Nudge IO/layout in case nothing visibly changed
       window.dispatchEvent(new Event('resize'));
@@ -900,27 +900,63 @@
     }, 250); // adjust if your Webflow close animation is longer
   }, { passive: true });
 </script>
+<!-- keep your GSAP + ScrollTrigger includes above this -->
 <script>
-  // Delay thumbnail scroll triggers until hero animation finishes (~2s)
-  setTimeout(() => {
-    const cards = gsap.utils.toArray(".grid_thumbnails a.open-popup");
-    gsap.set(cards, { opacity: 0, y: 24 });
+  // Prevent double init if this script gets run twice
+  if (!window.__thumbsInit) {
+    window.__thumbsInit = true;
 
-    ScrollTrigger.batch(cards, {
-      start: "top 80%",
-      once: true,
-      onEnter: (batch) =>
-        gsap.to(batch, {
-          opacity: 1,
-          y: 0,
+    // Wait for the top hero stuff to play first (adjust if you want)
+    const START_DELAY_MS = 2000;
+
+    // Helper: is element in (roughly) the viewport right now?
+    const inViewNow = (el) => {
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      return r.top < vh * 0.8 && r.bottom > 0; // top 80%
+    };
+
+    setTimeout(() => {
+      const cards = gsap.utils.toArray(".grid_thumbnails a.open-popup");
+
+      // 1) Split into in-view and out-of-view
+      const inView = [];
+      const outOfView = [];
+      cards.forEach(el => (inViewNow(el) ? inView : outOfView).push(el));
+
+      // 2) Animate the ones already in view IMMEDIATELY (no pre-hide)
+      if (inView.length) {
+        gsap.from(inView, {
+          opacity: 0,
+          y: 24,
           duration: 0.6,
           ease: "power2.out",
-          stagger: { each: 0.15 },
-          clearProps: "transform,opacity"
-        })
-    });
-  }, 2000); // adjust delay to match your hero animation length
+          stagger: { each: 0.12 }
+        });
+      }
+
+      // 3) For the rest, pre-hide then reveal on scroll
+      if (outOfView.length) {
+        gsap.set(outOfView, { opacity: 0, y: 24 });
+
+        ScrollTrigger.batch(outOfView, {
+          start: "top 80%",
+          once: true,
+          onEnter: (batch) =>
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: 0.6,
+              ease: "power2.out",
+              stagger: { each: 0.15 },
+              clearProps: "transform,opacity"
+            })
+        });
+      }
+    }, START_DELAY_MS);
+  }
 </script>
+
 
 	
 </body>
