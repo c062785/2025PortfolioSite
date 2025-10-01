@@ -2670,3 +2670,10 @@ a {
     right: 0; /* back to flush with edge */
   }
 }
+
+/* put in your CSS file */
+.grid_thumbnails .thumbnail {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
