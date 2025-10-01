@@ -29,7 +29,7 @@
   opacity: 0;
   transform: translateY(24px);
   will-change: transform, opacity;
-  transition: transform 0.22s ease; /* same timing as buttons */
+  transition: transform 0.22s ease;
 }
 
 /* Revealed state */
@@ -39,10 +39,10 @@
   visibility: visible !important;
 }
 
-/* Hover (same subtle scale as buttons, no shadow) */
+/* Hover: grow whole card (image + text), no shadow */
 @media (hover:hover) and (pointer:fine) {
   .grid_thumbnails a.open-popup:hover {
-    transform: scale(1.06); /* ~6% grow, matches buttons */
+    transform: scale(1.20); /* 20% grow */
     transition: transform 0.22s ease;
   }
 }
@@ -61,9 +61,7 @@
     transition: transform 0.22s ease;
   }
 }
-</style>
-
-	
+</style>	
 </head>
 <body class="body">
   <div style="display:none" class="lagree_modal">
