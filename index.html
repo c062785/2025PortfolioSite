@@ -901,30 +901,27 @@
   }, { passive: true });
 </script>
 <script>
-  gsap.registerPlugin(ScrollTrigger);
+  // Delay thumbnail scroll triggers until hero animation finishes (~2s)
+  setTimeout(() => {
+    const cards = gsap.utils.toArray(".grid_thumbnails a.open-popup");
+    gsap.set(cards, { opacity: 0, y: 24 });
 
-  // Each card wrapper (includes image + text + hover styles)
-  const cards = gsap.utils.toArray(".grid_thumbnails a.open-popup");
-
-  // Prep state
-  gsap.set(cards, { opacity: 0, y: 24 });
-
-  ScrollTrigger.batch(cards, {
-    interval: 0.1,
-    batchMax: 6,
-    start: "top 80%",
-    once: true,
-    onEnter: (batch) =>
-      gsap.to(batch, {
-        opacity: 1,
-        y: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        stagger: { each: 0.15, from: "start" },
-        clearProps: "transform,opacity" // clears GSAP inline styles → hover effect restored
-      })
-  });
+    ScrollTrigger.batch(cards, {
+      start: "top 80%",
+      once: true,
+      onEnter: (batch) =>
+        gsap.to(batch, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          stagger: { each: 0.15 },
+          clearProps: "transform,opacity"
+        })
+    });
+  }, 2000); // adjust delay to match your hero animation length
 </script>
+
 	
 </body>
 </html>
