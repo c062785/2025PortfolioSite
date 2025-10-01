@@ -2665,4 +2665,9 @@ a {
   margin: 0;                      /* ensure no leftover margins interfere */
 }
 
-
+/* At 1240px and smaller: remove that spacing */
+@media (max-width: 1240px) {
+  .hero_div .img {
+    right: 0; /* back to flush with edge */
+  }
+}
