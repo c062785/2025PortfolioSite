@@ -901,34 +901,33 @@
   }, { passive: true });
 </script>
 <script>
-  // Stagger in thumbnails when the section scrolls into view
-  (function () {
-    if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
 
-    gsap.registerPlugin(ScrollTrigger);
+  // target only the actual thumbs, not the spacer image
+  const items = gsap.utils.toArray(".grid_thumbnails .thumbnail:not(.thumb-spacer)");
 
-    // Each clickable card in the grid
-    const cards = gsap.utils.toArray('.grid_thumbnails a.open-popup');
+  // prep state (offscreen a bit + transparent)
+  gsap.set(items, { opacity: 0, y: 24 });
 
-    // Safety: ensure starting state if you didn't add the CSS above
-    gsap.set(cards, { opacity: 0, y: 24 });
-
-    ScrollTrigger.create({
-      trigger: '.thumbnail_div',
-      start: 'top 80%',
-      once: true, // run only once
-      onEnter: () => {
-        gsap.to(cards, {
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          ease: 'power2.out',
-          stagger: { each: 0.15, from: 'start' } // left-to-right
-        });
-      }
-    });
-  })();
+  // batch for smoother performance
+  ScrollTrigger.batch(items, {
+    interval: 0.1,         // group DOM updates every 100ms
+    batchMax: 6,           // animate up to 6 at once
+    start: "top 80%",      // when each item hits 80% viewport height
+    once: true,            // play only once
+    onEnter: (batch) => gsap.to(batch, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      ease: "power2.out",  // smooth but snappy; try "expo.out" for even softer
+      stagger: { each: 0.12, from: "start" },
+      clearProps: "transform,opacity" // clean inline styles after
+    })
+    // If you want them to reverse when scrolling back up, add:
+    // ,onLeaveBack: (batch) => gsap.to(batch, {opacity:0, y:24, duration:0.4, ease:"power1.out"})
+  });
 </script>
+
 
 
 </body>
