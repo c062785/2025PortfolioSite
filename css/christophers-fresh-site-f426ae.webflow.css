@@ -2659,10 +2659,9 @@ a {
 
 /* Custom Code */
 
-/* desktop hero image spacing from the right edge */
+/* Default: add spacing from the right */
 .hero_div .img {
-  right: clamp(0px, 10vw, 40px); /* pushes it in from the right */
-  margin: 0;                      /* ensure no leftover margins interfere */
+  right: clamp(0px, 2.5vw, 40px);
 }
 
 /* At 1240px and smaller: remove that spacing */
