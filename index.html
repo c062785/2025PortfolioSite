@@ -910,58 +910,37 @@
   }, { passive: true });
 </script>
 <script>
-  // Guard in case scripts run twice
-  if (!window.__thumbsInit) {
-    window.__thumbsInit = true;
+  // Require GSAP + ScrollTrigger to be loaded before this
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
 
-    // delay so the hero/header can do its thing first
-    const START_DELAY_MS = 2000;
+    // 1) Make sure initial state is hidden (matches your CSS)
+    gsap.set(".grid_thumbnails a.open-popup", { autoAlpha: 0, y: 24 });
 
-    // helper: is element currently in viewport-ish?
-    const inViewNow = (el) => {
-      const r = el.getBoundingClientRect();
-      const vh = window.innerHeight || document.documentElement.clientHeight;
-      return r.top < vh * 0.8 && r.bottom > 0;
-    };
-
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        const cards = gsap.utils.toArray(".grid_thumbnails a.open-popup");
-        const inView = [];
-        const outOfView = [];
-        cards.forEach(el => (inViewNow(el) ? inView : outOfView).push(el));
-
-        // Animate the ones already on screen
-        if (inView.length) {
-          gsap.to(inView, {
-            opacity: 1,
-            y: 0,
-            duration: 0.65,
-            ease: "power2.out",
-            stagger: { each: 0.12 },
-            clearProps: "transform,opacity"
-          });
-        }
-
-        // Set up scroll-in for the rest (they're still hidden by CSS)
-        if (outOfView.length) {
-          ScrollTrigger.batch(outOfView, {
-            start: "top 80%",
-            once: true,
-            onEnter: (batch) => gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: 0.65,
-              ease: "power2.out",
-              stagger: { each: 0.15 },
-              clearProps: "transform,opacity"
-            })
-          });
-        }
-      }, START_DELAY_MS);
+    // 2) One-way reveal, never reverse (no onLeaveBack)
+    ScrollTrigger.batch(".grid_thumbnails a.open-popup", {
+      start: "top 85%",
+      // play once per element
+      once: true,
+      onEnter: (batch) => {
+        gsap.to(batch, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.9,
+          ease: "power2.out",
+          stagger: { each: 0.12, from: "start" }
+        });
+      }
+      // NOTE: no onLeave / onLeaveBack -> no re-hide
     });
+
+    // (Optional) if your grid changes height dynamically, keep ST refreshed
+    window.addEventListener("load", () => setTimeout(() => ScrollTrigger.refresh(), 100));
+  } else {
+    console.warn("GSAP + ScrollTrigger not found before thumbnails script.");
   }
 </script>
+
 
 
 
