@@ -2660,13 +2660,13 @@ a {
 /* Custom Code */
 
 /* Default: add spacing from the right */
-.hero_div .hero-img {
+.hero_div .img {
   right: clamp(0px, 3vw, 100px);
 }
 
 /* At 1240px and smaller: remove that spacing */
 @media (max-width: 1240px) {
-  .hero_div .hero-img {
+  .hero_div .img {
     right: 0; /* back to flush with edge */
   }
 }
