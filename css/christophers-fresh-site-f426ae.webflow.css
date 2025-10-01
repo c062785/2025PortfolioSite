@@ -2661,7 +2661,7 @@ a {
 
 /* desktop hero image spacing from the right edge */
 .hero_div .img {
-  right: clamp(0px, 5vw, 40px); /* pushes it in from the right */
+  right: clamp(0px, 10vw, 40px); /* pushes it in from the right */
   margin: 0;                      /* ensure no leftover margins interfere */
 }
 
