@@ -30,10 +30,42 @@
     transform: translateY(24px);
     will-change: transform, opacity;
   }
-</style>
-	<style>
   /* Cosmetic: prevents layout shift when scrollbars disappear */
   .modal-open { overscroll-behavior: contain; }
+
+		/* keep items hidden until GSAP reveals */
+.grid_thumbnails a.open-popup .thumbnail {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: transform, opacity;
+  transition: transform 260ms ease, box-shadow 260ms ease;
+}
+
+/* hover scale (desktop only so it feels natural) */
+@media (hover:hover) and (pointer:fine) {
+  .grid_thumbnails a.open-popup:hover .thumbnail {
+    transform: translateY(0) scale(1.08); /* scale ~8–10% is nice */
+  }
+}
+
+/* optional: a tiny lift for the small caption texts */
+@media (hover:hover) and (pointer:fine) {
+  .grid_thumbnails a.open-popup:hover .text-block-3,
+  .grid_thumbnails a.open-popup:hover .text-block-3-copy {
+    transform: translateY(-2px);
+    transition: transform 240ms ease;
+  }
+}
+
+/* buttons: same vibe */
+@media (hover:hover) and (pointer:fine) {
+  .red_button:hover,
+  .button.w-button:hover {
+    transform: scale(1.06);
+    transition: transform 220ms ease;
+  }
+}
+
 </style>
 
 
@@ -915,36 +947,28 @@
   }, { passive: true });
 </script>
 <script>
-  // Require GSAP + ScrollTrigger to be loaded before this
-  if (window.gsap && window.ScrollTrigger) {
-    gsap.registerPlugin(ScrollTrigger);
+(function () {
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
 
-    // 1) Make sure initial state is hidden (matches your CSS)
-    gsap.set(".grid_thumbnails a.open-popup", { autoAlpha: 0, y: 24 });
+  // target the inner .thumbnail divs instead of the anchor
+  const items = gsap.utils.toArray('.grid_thumbnails a.open-popup .thumbnail');
 
-    // 2) One-way reveal, never reverse (no onLeaveBack)
-    ScrollTrigger.batch(".grid_thumbnails a.open-popup", {
-      start: "top 85%",
-      // play once per element
-      once: true,
-      onEnter: (batch) => {
-        gsap.to(batch, {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.9,
-          ease: "power2.out",
-          stagger: { each: 0.12, from: "start" }
-        });
-      }
-      // NOTE: no onLeave / onLeaveBack -> no re-hide
-    });
-
-    // (Optional) if your grid changes height dynamically, keep ST refreshed
-    window.addEventListener("load", () => setTimeout(() => ScrollTrigger.refresh(), 100));
-  } else {
-    console.warn("GSAP + ScrollTrigger not found before thumbnails script.");
-  }
+  gsap.to(items, {
+    opacity: 1,
+    y: 0,
+    stagger: { each: 0.08, from: "start" },
+    duration: 0.6,
+    ease: "power2.out",
+    scrollTrigger: {
+      trigger: '.grid_thumbnails',
+      start: 'top 75%',
+      once: true
+    }
+  });
+})();
 </script>
+
 <script>
   // ---- Scroll lock helpers
   function lockScroll() {
