@@ -2660,5 +2660,5 @@ a {
 /* Custom Code */
 
 .hero_div .img {
-  padding: clamp(0px, 2.5vw, 40px);
+  margin: clamp(0px, 2.5vw, 40px);
 }
