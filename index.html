@@ -24,19 +24,6 @@
   <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon">
   <link href="images/webclip.png" rel="apple-touch-icon">
 	<style>
-  /* Keep thumbnails hidden until GSAP reveals them */
- .grid_thumbnails a.open-popup {
-  opacity: 0;
-  transform: translateY(24px);
-  will-change: transform, opacity;
-}
-
-/* add this so revealed items NEVER disappear again */
-.grid_thumbnails a.open-popup.revealed {
-  opacity: 1 !important;
-  transform: none !important;
-}
-
 		/* Reveal/hover on the WHOLE card (your wrapper div) */
 .grid_thumbnails .div-block-3.w-clearfix {
   opacity: 0;                /* start hidden for GSAP */
@@ -985,22 +972,16 @@
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
 
-  // Start hidden (matches CSS above)
   gsap.set(".grid_thumbnails .div-block-3.w-clearfix", { autoAlpha: 0, y: 24 });
 
-  // Reveal each card once and never reverse
   gsap.utils.toArray(".grid_thumbnails .div-block-3.w-clearfix").forEach((card, i) => {
     ScrollTrigger.create({
       trigger: card,
       start: "top 85%",
       once: true,
       onEnter: () => {
-        card.classList.add("revealed"); // lock visible state
-        gsap.fromTo(
-          card,
-          { autoAlpha: 0, y: 24 },
-          { autoAlpha: 1, y: 0, duration: 0.9, ease: "power2.out", delay: i * 0.04 }
-        );
+        card.classList.add("revealed");
+        gsap.fromTo(card, { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.9, ease: "power2.out", delay: i * 0.04 });
       }
     });
   });
