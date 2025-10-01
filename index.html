@@ -25,21 +25,13 @@
   <link href="images/webclip.png" rel="apple-touch-icon">
 	<style>
   /* Keep thumbnails hidden until GSAP reveals them */
-  .grid_thumbnails a.open-popup {
-    opacity: 0;
-    transform: translateY(24px);
-    will-change: transform, opacity;
-  }
-  /* Cosmetic: prevents layout shift when scrollbars disappear */
-  .modal-open { overscroll-behavior: contain; }
-
-		/* keep items hidden until GSAP reveals */
-.grid_thumbnails a.open-popup .thumbnail {
+ .grid_thumbnails a.open-popup {
   opacity: 0;
   transform: translateY(24px);
   will-change: transform, opacity;
-  transition: transform 260ms ease, box-shadow 260ms ease;
 }
+  /* Cosmetic: prevents layout shift when scrollbars disappear */
+  .modal-open { overscroll-behavior: contain; }
 
 /* hover scale (desktop only so it feels natural) */
 @media (hover:hover) and (pointer:fine) {
@@ -950,22 +942,27 @@
 (function () {
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
+if (window.gsap && window.ScrollTrigger) {
+  gsap.registerPlugin(ScrollTrigger);
 
-  // target the inner .thumbnail divs instead of the anchor
-  const items = gsap.utils.toArray('.grid_thumbnails a.open-popup .thumbnail');
+  // Initial hidden state
+  gsap.set(".grid_thumbnails a.open-popup", { autoAlpha: 0, y: 24 });
 
-  gsap.to(items, {
-    opacity: 1,
-    y: 0,
-    stagger: { each: 0.08, from: "start" },
-    duration: 0.6,
-    ease: "power2.out",
-    scrollTrigger: {
-      trigger: '.grid_thumbnails',
-      start: 'top 75%',
-      once: true
+  ScrollTrigger.batch(".grid_thumbnails a.open-popup", {
+    start: "top 85%",
+    once: true,
+    onEnter: (batch) => {
+      gsap.to(batch, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.9,
+        ease: "power2.out",
+        stagger: { each: 0.12, from: "start" },
+        clearProps: "transform,opacity" // ✅ lets CSS hover scale work again
+      });
     }
   });
+}
 })();
 </script>
 
