@@ -29,7 +29,7 @@
   opacity: 0;
   transform: translateY(24px);
   will-change: transform, opacity;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.22s ease; /* same timing as buttons */
 }
 
 /* Revealed state */
@@ -39,16 +39,11 @@
   visibility: visible !important;
 }
 
-/* Hover (whole card grows) */
+/* Hover (same subtle scale as buttons, no shadow) */
 @media (hover:hover) and (pointer:fine) {
   .grid_thumbnails a.open-popup:hover {
-    transform: translateY(0) scale(1.06);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-  }
-  .grid_thumbnails a.open-popup:hover .text-block-3,
-  .grid_thumbnails a.open-popup:hover .text-block-3-copy {
-    transform: translateY(-2px);
-    transition: transform 240ms ease;
+    transform: scale(1.06); /* ~6% grow, matches buttons */
+    transition: transform 0.22s ease;
   }
 }
 
@@ -58,15 +53,16 @@
 /* Cosmetic: prevent scrollbars shifting layout */
 .modal-open { overscroll-behavior: contain; }
 
-/* Buttons hover */
+/* Buttons hover (unchanged) */
 @media (hover:hover) and (pointer:fine) {
   .red_button:hover,
   .button.w-button:hover {
     transform: scale(1.06);
-    transition: transform 220ms ease;
+    transition: transform 0.22s ease;
   }
 }
 </style>
+
 	
 </head>
 <body class="body">
