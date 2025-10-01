@@ -31,6 +31,11 @@
     will-change: transform, opacity;
   }
 </style>
+	<style>
+  /* Cosmetic: prevents layout shift when scrollbars disappear */
+  .modal-open { overscroll-behavior: contain; }
+</style>
+
 
 </head>
 <body class="body">
@@ -939,6 +944,63 @@
   } else {
     console.warn("GSAP + ScrollTrigger not found before thumbnails script.");
   }
+</script>
+<script>
+  // ---- Scroll lock helpers
+  function lockScroll() {
+    document.documentElement.classList.add('modal-open');
+    document.body.classList.add('modal-open');
+    // Clear any inline overflow left by Webflow interactions or prior code
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function unlockScroll() {
+    document.documentElement.classList.remove('modal-open');
+    document.body.classList.remove('modal-open');
+    // Remove inline locks so normal scrolling returns
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+  }
+
+  // When a thumb opens a modal
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.open-popup')) {
+      lockScroll();
+    }
+  }, { passive: true });
+
+  // When any "close" control is clicked
+  document.addEventListener('click', (e) => {
+    const closeBtn = e.target.closest('.close-popup');
+    if (!closeBtn) return;
+    e.preventDefault();
+
+    // Pause videos inside the closing modal (optional)
+    const modalRoot = closeBtn.closest('.popup-bg-2') || document;
+    modalRoot.querySelectorAll('video').forEach(v => {
+      try { v.pause(); v.currentTime = 0; } catch(_) {}
+    });
+
+    // Give Webflow a tick to finish its hide animation, then unlock
+    setTimeout(unlockScroll, 200);
+  }, { passive: false });
+
+  // Safety net: if somehow no modal is visible, ensure scroll is unlocked
+  // (helps when a background click or ESC closes via Webflow)
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      setTimeout(unlockScroll, 250);
+    }
+  });
+
+  // If your background overlay is clickable to close:
+  document.addEventListener('click', (e) => {
+    const bg = e.target.closest('.popup-bg-2');
+    if (!bg) return;
+    // if click is on the overlay itself (not inside modal content), unlock
+    if (e.target === bg) setTimeout(unlockScroll, 200);
+  }, { passive: true });
 </script>
 
 
