@@ -37,6 +37,41 @@
   transform: none !important;
 }
 
+		/* Reveal/hover on the WHOLE card (your wrapper div) */
+.grid_thumbnails .div-block-3.w-clearfix {
+  opacity: 0;                /* start hidden for GSAP */
+  transform: translateY(24px);
+  will-change: transform, opacity;
+  transition: transform .3s ease, box-shadow .3s ease; /* for hover */
+}
+
+.grid_thumbnails .div-block-3.w-clearfix.revealed {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+}
+
+/* Hover should apply to the whole card (image + text) */
+@media (hover:hover) and (pointer:fine) {
+  .grid_thumbnails .div-block-3.w-clearfix:hover {
+    transform: translateY(0) scale(1.06);
+    box-shadow: 0 8px 20px rgba(0,0,0,.18);
+  }
+
+  /* move your inner hover effects to trigger from the wrapper */
+  .grid_thumbnails .div-block-3.w-clearfix:hover .thumbnail {
+    transform: translateY(0) scale(1.08);
+  }
+  .grid_thumbnails .div-block-3.w-clearfix:hover .text-block-3,
+  .grid_thumbnails .div-block-3.w-clearfix:hover .text-block-3-copy {
+    transform: translateY(-2px);
+    transition: transform 240ms ease;
+  }
+}
+
+/* make sure scale isn't clipped by the grid */
+.grid_thumbnails { overflow: visible; }
+
   /* Cosmetic: prevents layout shift when scrollbars disappear */
   .modal-open { overscroll-behavior: contain; }
 
@@ -950,36 +985,27 @@
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
 
-  // Start hidden (matches your CSS)
-  gsap.set(".grid_thumbnails a.open-popup", { autoAlpha: 0, y: 24 });
+  // Start hidden (matches CSS above)
+  gsap.set(".grid_thumbnails .div-block-3.w-clearfix", { autoAlpha: 0, y: 24 });
 
-  // Reveal each item once and never reverse
-  gsap.utils.toArray(".grid_thumbnails a.open-popup").forEach((el, i) => {
+  // Reveal each card once and never reverse
+  gsap.utils.toArray(".grid_thumbnails .div-block-3.w-clearfix").forEach((card, i) => {
     ScrollTrigger.create({
-      trigger: el,
+      trigger: card,
       start: "top 85%",
-      once: true, // play only once; no reverse on scroll back
+      once: true,
       onEnter: () => {
-        el.classList.add("revealed"); // lock the visible state via CSS
+        card.classList.add("revealed"); // lock visible state
         gsap.fromTo(
-          el,
+          card,
           { autoAlpha: 0, y: 24 },
-          {
-            autoAlpha: 1,
-            y: 0,
-            duration: 0.9,
-            ease: "power2.out",
-            delay: i * 0.04
-          }
+          { autoAlpha: 1, y: 0, duration: 0.9, ease: "power2.out", delay: i * 0.04 }
         );
       }
-      // No onLeave / onLeaveBack -> nothing re-hides
     });
   });
 })();
 </script>
-
-
 <script>
   // ---- Scroll lock helpers
   function lockScroll() {
