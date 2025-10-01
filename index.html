@@ -780,7 +780,7 @@
   <script src="js/webflow.js" type="text/javascript"></script>
 <script src="https://cdn.prod.website-files.com/gsap/3.13.0/gsap.min.js" type="text/javascript"></script>
   <script src="https://cdn.prod.website-files.com/gsap/3.13.0/SplitText.min.js" type="text/javascript"></script>
-  
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js"></script>
   <style>
 /* 16:9 responsive box */
 .video-box{
@@ -899,6 +899,35 @@
       // document.body.getBoundingClientRect();
     }, 250); // adjust if your Webflow close animation is longer
   }, { passive: true });
+</script>
+<script>
+  // Stagger in thumbnails when the section scrolls into view
+  (function () {
+    if (!window.gsap || !window.ScrollTrigger) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Each clickable card in the grid
+    const cards = gsap.utils.toArray('.grid_thumbnails a.open-popup');
+
+    // Safety: ensure starting state if you didn't add the CSS above
+    gsap.set(cards, { opacity: 0, y: 24 });
+
+    ScrollTrigger.create({
+      trigger: '.thumbnail_div',
+      start: 'top 80%',
+      once: true, // run only once
+      onEnter: () => {
+        gsap.to(cards, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
+          stagger: { each: 0.15, from: 'start' } // left-to-right
+        });
+      }
+    });
+  })();
 </script>
 
 
