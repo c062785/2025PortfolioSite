@@ -937,10 +937,6 @@
   if (!window.gsap || !window.ScrollTrigger) return;
   gsap.registerPlugin(ScrollTrigger);
 
-  // Hide anchors until reveal
-  gsap.set(".grid_thumbnails a.open-popup", { autoAlpha: 0, y: 24 });
-
-  // Reveal each anchor once, never reverse
   gsap.utils.toArray(".grid_thumbnails a.open-popup").forEach((el, i) => {
     ScrollTrigger.create({
       trigger: el,
@@ -948,17 +944,11 @@
       once: true,
       onEnter: () => {
         el.classList.add("revealed");
-        gsap.fromTo(
-          el,
-          { autoAlpha: 0, y: 24 },
-          { autoAlpha: 1, y: 0, duration: 0.9, ease: "power2.out", delay: i * 0.04 }
-        );
       }
     });
   });
 })();
 </script>
-
 <script>
   // ---- Scroll lock helpers
   function lockScroll() {
