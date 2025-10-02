@@ -1226,9 +1226,31 @@
   // }
 })();
 </script>
+<script>
+  (function () {
+    const HERO_H1_SELECTOR = ".hero .h1, .header .h1"; // adjust if your hero uses another class
 
+    function scrub(el) {
+      ["font-size","line-height","letter-spacing","transform","opacity","visibility"]
+        .forEach(p => el.style.removeProperty(p));
+      el.querySelectorAll("span,em,strong,i,b").forEach(n => {
+        ["transform","opacity","visibility"].forEach(p => n.style.removeProperty(p));
+      });
+    }
 
+    let t;
+    function onChange() {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        document.querySelectorAll(HERO_H1_SELECTOR).forEach(scrub);
+        if (window.ScrollTrigger?.refresh) requestAnimationFrame(() => ScrollTrigger.refresh(true));
+      }, 150);
+    }
 
-	
+    window.addEventListener("orientationchange", onChange, { passive: true });
+    window.addEventListener("resize", onChange, { passive: true });
+  })();
+</script>
+
 </body>
 </html>
