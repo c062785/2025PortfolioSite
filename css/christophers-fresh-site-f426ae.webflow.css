@@ -2800,5 +2800,14 @@ a {
   }
 }
 
-.splitline { opacity: 0; }
+/* iOS-safe pre-hide for the mobile footer title */
+.footer .about .h3.mobile-resize {
+  visibility: hidden !important;  /* measurable but not paintable */
+  opacity: 0 !important;
+}
+
+/* SplitText lines start hidden (prevents 1-frame flash) */
+.splitline { 
+  opacity: 0 !important;
+}
 
