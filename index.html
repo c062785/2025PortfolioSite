@@ -1115,25 +1115,32 @@
 
       const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-      // 1) Top paragraph lines
-      if (topText) {
-        gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
-        const split = new SplitText(topText, { type: "lines" });
-        gsap.set(split.lines, { autoAlpha: 0, y: 16 });
+// 1) Top paragraph line-by-line (NO early flash)
+if (topText) {
+  // Make it measurable but invisible (opacity 0, not visibility hidden)
+  gsap.set(topText, { opacity: 0, visibility: "visible" });
 
-        tl.to(split.lines, {
-          autoAlpha: 1,
-          y: 0,
-          duration: ITEM_DUR,
-          stagger: LINE_STAGGER,
-          clearProps: "transform"
-        }, 0);
+  const split = new SplitText(topText, { type: "lines" });
 
-        tl.add(() => {
-          split.revert();
-          topText.classList.add("is-revealed");
-        }, ">-0.05");
-      }
+  // Hide the individual lines too
+  gsap.set(split.lines, { opacity: 0, y: 16 });
+
+  // When the timeline actually plays, show the parent *then* reveal lines
+  tl.set(topText, { opacity: 1 }, 0);
+  tl.to(split.lines, {
+    opacity: 1,
+    y: 0,
+    duration: ITEM_DUR,
+    stagger: LINE_STAGGER,
+    clearProps: "transform"
+  }, 0);
+
+  // Clean up wrappers & lock visibility after
+  tl.add(() => {
+    split.revert();
+    topText.classList.add("is-revealed");
+  }, ">-0.05");
+}
 
       // 2) Heading + button + logo (quick cascade)
       const group = [heading, buttonEl, greyLogo].filter(Boolean);
