@@ -73,6 +73,42 @@
   }
 }
 
+/* Desktop-only (Webflow desktop breakpoint) */
+@media screen and (min-width: 992px) {
+  /* We fade a pseudo-element, so neutralize native bg first */
+  .footer {
+    position: relative;
+    background-image: none !important;   /* your file had a footer bg set */
+    --bgOpacity: 0;                      /* animation knob (0..1) */
+  }
+  .footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("../images/Footer-Background.jpg");
+    background-repeat: no-repeat;
+    background-position: 50% 0;
+    background-size: auto;
+    opacity: var(--bgOpacity);
+    pointer-events: none;
+  }
+
+  /* Pre-hide animated pieces to prevent flash */
+  .footer .about .h3,                    /* top paragraph block */
+  .footer .footer---contact .h1,         /* “That’s it. Ready to connect?” */
+  .footer .footer---contact .email-link, /* button link wrapper */
+  .footer .rectangle-13 {                /* grey logo image */
+    opacity: 0;
+    visibility: hidden;
+    will-change: transform, opacity;
+  }
+}
+
+/* You already hide the bg on tablet & below; keep this */
+@media screen and (max-width: 991px) {
+  .footer { background-image: none !important; }
+}
+
 </style>
 	
 </head>
@@ -1038,6 +1074,105 @@
 })();
 </script>
 
+<script>
+  // Requires gsap, ScrollTrigger, SplitText already loaded
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+
+  // Only run on desktop
+  gsap.matchMedia().add("(min-width: 992px)", () => {
+    const footer   = document.querySelector(".footer");
+    if (!footer) return;
+
+    // Map to your structure (seen in your file)
+    const topText  = footer.querySelector(".about .h3") || footer.querySelector(".h3.mobile-resize");
+    const heading  = footer.querySelector(".footer---contact .h1");
+    const buttonEl = footer.querySelector(".footer---contact .email-link");
+    const greyLogo = footer.querySelector(".rectangle-13");
+
+    // Build timeline (start paused; we'll control when it can play)
+    const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
+
+    // 1) Paragraph line-by-line (like hero)
+    if (topText) {
+      const split = new SplitText(topText, { type: "lines" });
+      gsap.set(split.lines, { autoAlpha: 0, y: 16 });
+      tl.to(split.lines, {
+        autoAlpha: 1,
+        y: 0,
+        duration: 0.6,
+        stagger: 0.08,
+        clearProps: "all"
+      });
+      // Revert wrappers so DOM stays clean
+      tl.add(() => split.revert(), ">");
+    }
+
+    // 2) “That’s it. Ready to connect?”
+    if (heading) {
+      tl.fromTo(heading, { autoAlpha: 0, y: 20 }, { autoAlpha: 1, y: 0, duration: 0.6, clearProps: "all" }, "+=0.1");
+    }
+
+    // 3) Button
+    if (buttonEl) {
+      tl.fromTo(buttonEl, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.5, clearProps: "all" }, "+=0.05");
+    }
+
+    // 4) Grey logo
+    if (greyLogo) {
+      tl.fromTo(greyLogo, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: 0.6, clearProps: "all" }, "+=0.05");
+    }
+
+    // 5) Footer background fade (animate CSS var -> pseudo element)
+    tl.to(footer, {
+      duration: 0.8,
+      onStart: () => footer.style.setProperty("--bgOpacity", 0),
+      onUpdate: function () {
+        footer.style.setProperty("--bgOpacity", this.progress().toFixed(3));
+      }
+    }, "+=0.05");
+
+    // Ensure visibility becomes normal after the first reveals
+    tl.add(() => {
+      [topText, heading, buttonEl, greyLogo].forEach(el => {
+        if (el) el.style.visibility = "visible";
+      });
+    });
+
+    // ---- Scroll logic ----
+    // We want: play when footer scrolls into view.
+    // BUT if the footer is already in view on page load (very tall screens),
+    // do not auto-play until the user scrolls at least a bit.
+    const createTrigger = () => ScrollTrigger.create({
+      trigger: footer,
+      start: "top 80%",
+      once: true,
+      onEnter: () => tl.play()
+    });
+
+    const footerTopInViewOnLoad = () => {
+      const rect = footer.getBoundingClientRect();
+      return rect.top <= window.innerHeight * 0.8;
+    };
+
+    if (footerTopInViewOnLoad() && window.scrollY === 0) {
+      // Gate: wait for any user scroll, then set up the trigger and check again
+      const startOnFirstScroll = () => {
+        window.removeEventListener("scroll", startOnFirstScroll, { passive: true });
+        // If it's in view after the first scroll, just play; otherwise create the trigger
+        if (footerTopInViewOnLoad()) {
+          tl.play();
+        } else {
+          createTrigger();
+          ScrollTrigger.refresh();
+        }
+      };
+      window.addEventListener("scroll", startOnFirstScroll, { passive: true, once: true });
+    } else {
+      // Normal path: create trigger now
+      createTrigger();
+    }
+  });
+</script>
 
 
 
