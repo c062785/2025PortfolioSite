@@ -989,18 +989,18 @@
   gsap.registerPlugin(ScrollTrigger, SplitText);
 
   (function () {
-    // ---------- TWEAKABLE TIMING ----------
-    const LINE_STAGGER = 0.05;  // delay between lines in the top footer paragraph
-    const ITEM_DUR     = 0.6;   // duration for footer text/button/logo fades
+    // -------- TWEAKABLE TIMING --------
+    const LINE_STAGGER = 0.05;  // delay between lines in the top paragraph
+    const ITEM_DUR     = 0.6;   // duration for heading/button/logo fades
     const ITEM_STAGGER = 0.12;  // spacing between heading, button, logo
     const BG_DUR       = 0.7;   // footer background overlay fade duration
-    const BG_DELAY     = 0.30;  // when the overlay fade starts (seconds from TL start)
+    const BG_DELAY     = 0.30;  // when the overlay fade starts (sec from TL start)
     const THUMB_DUR    = 0.5;   // thumbnail fade duration
     const THUMB_STAG   = 0.08;  // thumbnail stagger
-    // -------------------------------------
+    // ----------------------------------
 
-    // ===== FOOTER TIMELINE (all breakpoints) =====
-    const footer = document.querySelector(".footer");
+    // ===== FOOTER =====
+    const footer   = document.querySelector(".footer");
     if (footer) {
       const topText  = footer.querySelector(".about .h3.mobile-resize")
                      || footer.querySelector(".about .h3")
@@ -1010,59 +1010,62 @@
       const buttonEl = footer.querySelector(".footer---contact .email-link");
       const greyLogo = footer.querySelector(".rectangle-13");
 
-      const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
-
-// 1) Top paragraph line-by-line (NO early flash)
-if (topText) {
-  // Make it measurable but invisible (opacity 0, not visibility hidden)
-  gsap.set(topText, { opacity: 0, visibility: "visible" });
-
-  const split = new SplitText(topText, { type: "lines" });
-
-  // Hide the individual lines too
-  gsap.set(split.lines, { opacity: 0, y: 16 });
-
-  // When the timeline actually plays, show the parent *then* reveal lines
-  tl.set(topText, { opacity: 1 }, 0);
-  tl.to(split.lines, {
-    opacity: 1,
-    y: 0,
-    duration: ITEM_DUR,
-    stagger: LINE_STAGGER,
-    clearProps: "transform"
-  }, 0);
-
-  // Clean up wrappers & lock visibility after
-  tl.add(() => {
-    split.revert();
-    topText.classList.add("is-revealed");
-  }, ">-0.05");
-}
-
-      // 2) Heading + button + logo (quick cascade)
-      const group = [heading, buttonEl, greyLogo].filter(Boolean);
-      if (group.length) {
-        tl.to(group, {
-          autoAlpha: 1,
-          y: 0,
-          duration: ITEM_DUR,
-          stagger: ITEM_STAGGER,
-          clearProps: "transform",
-          onComplete: () => group.forEach(el => el.classList.add("is-revealed"))
-        }, 0.10);
+      // PREP: pre-split lines and hide them via CSS (.splitline { opacity:0; })
+      // This prevents Safari/iOS from flashing the paragraph before animation.
+      let split = null;
+      if (topText) {
+        split = new SplitText(topText, { type: "lines", linesClass: "splitline" });
+        gsap.set(topText, { visibility: "visible" });
+        gsap.set(split.lines, { y: 16 }); // ready to animate up
       }
 
-      // 3) BACKGROUND REVEAL (overlay 1 -> 0) — runs everywhere; on tablet/mobile your CSS hides bg anyway
+      const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
+
+      // 1) Reveal the pre-split lines (line-by-line)
+      if (split) {
+        tl.to(split.lines, {
+          opacity: 1,
+          y: 0,
+          duration: ITEM_DUR,
+          stagger: LINE_STAGGER,
+          clearProps: "transform",
+          immediateRender: false
+        }, 0);
+
+        tl.add(() => {
+          split.revert();                 // clean DOM
+          topText.classList.add("is-revealed");
+        }, ">-0.05");
+      }
+
+      // 2) Heading + Button + Logo (quick cascade)
+      const group = [heading, buttonEl, greyLogo].filter(Boolean);
+      if (group.length) {
+        tl.fromTo(group,
+          { opacity: 0, y: 16, visibility: "visible" },
+          {
+            opacity: 1, y: 0,
+            duration: ITEM_DUR,
+            stagger: ITEM_STAGGER,
+            clearProps: "transform",
+            onComplete: () => group.forEach(el => el.classList.add("is-revealed"))
+          },
+          0.10
+        );
+      }
+
+      // 3) Background overlay fade (1 -> 0 reveals your bg)
+      // Assumes your desktop CSS sets: .footer { --overlayOpacity: 1; } and ::before uses it.
       tl.to(footer, {
         duration: BG_DUR,
-        "--overlayOpacity": 0,   // CSS var on .footer; starts at 1 in your desktop CSS
+        "--overlayOpacity": 0,
         ease: "power2.out"
       }, BG_DELAY);
 
-      // Scroll gating (prevents instant play on super-tall screens)
+      // Scroll gating (plays when footer enters; avoids autostart on tall screens)
       const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
 
-      const trigger = ScrollTrigger.create({
+      ScrollTrigger.create({
         trigger: footer,
         start: "top 80%",
         once: true,
@@ -1078,7 +1081,7 @@ if (topText) {
       }
     }
 
-    // ===== THUMBNAIL GRID SCROLL ANIMATION (all breakpoints) =====
+    // ===== THUMBNAIL GRID =====
     const grid = document.querySelector(".grid_thumbnails");
     if (grid) {
       const thumbs = gsap.utils.toArray(".grid_thumbnails a.open-popup");
@@ -1104,6 +1107,7 @@ if (topText) {
     }
   })();
 </script>
+
 
 	
 </body>
