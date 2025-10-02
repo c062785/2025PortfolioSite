@@ -1560,7 +1560,7 @@ a {
 }
 
 .close-popup {
-  z-index: 200;
+  z-index: 999;
   width: 100px;
   padding: 0;
   text-decoration: none;
@@ -1616,7 +1616,7 @@ a {
 }
 
 .close-pop-up-div {
-  z-index: 50;
+  z-index: 999;
   background-color: #fff;
   justify-content: space-between;
   align-items: center;
@@ -1756,7 +1756,7 @@ a {
 }
 
 .close-pop-up-div-2 {
-  z-index: 50;
+  z-index: 999;
   background-color: #fff;
   justify-content: space-between;
   align-items: center;
