@@ -2685,18 +2685,23 @@ a {
   .modal_right > *:first-child { grid-row-start: 1 !important; }
 }
 
-/* Tablet and smaller: keep 10px top padding */
-@media screen and (max-width: 991px) {
+/* Tablet only (between 768px and 991px) */
+@media screen and (min-width: 768px) and (max-width: 991px) {
   .modal_right {
     padding-top: 10px !important;
   }
 }
 
-/* Desktop and larger: remove it */
-@media screen and (min-width: 992px) {
+/* Mobile landscape and smaller (≤ 767px) */
+@media screen and (max-width: 767px) {
   .modal_right {
     padding-top: 0 !important;
   }
 }
 
-
+/* Desktop (≥ 992px) */
+@media screen and (min-width: 992px) {
+  .modal_right {
+    padding-top: 0 !important;
+  }
+}
