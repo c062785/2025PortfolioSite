@@ -1156,23 +1156,12 @@
     }
 
     // 3) BACKGROUND REVEAL (overlay 1 -> 0). Default CSS is 0, so bg is visible unless this runs.
-tl.to(footer, {
-  duration: BG_DUR,
-  onStart:  () => footer.style.setProperty("--overlayOpacity", "1"),
-  onUpdate: function () {
-    const v = 1 - this.progress();
-    footer.style.setProperty("--overlayOpacity", v.toFixed(3));
-  },
-  onComplete: () => footer.style.setProperty("--overlayOpacity", "0")
-}, BG_DELAY);
-
-// AFTER (clean, flicker-free)
+// 3) BACKGROUND REVEAL (overlay 1 -> 0)
 tl.to(footer, {
   duration: BG_DUR,
   "--overlayOpacity": 0,   // 1 → 0 reveals the real bg
   ease: "power2.out"
 }, BG_DELAY);
-
 
     // Scroll gating (prevents autostart on super-tall screens)
     const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
