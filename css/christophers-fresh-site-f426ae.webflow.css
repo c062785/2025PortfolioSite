@@ -2678,30 +2678,43 @@ a {
   transform: translateZ(0);
 }
 
-/* removing flex grid gap by having child start at 1 */
-@media (max-width: 991px){
-  /* Ensure auto placement and first item starts at row 1 */
-  .modal_right > * { grid-row: auto !important; grid-column: 1 / -1; }
-  .modal_right > *:first-child { grid-row-start: 1 !important; }
-}
-
-/* Tablet only (between 768px and 991px) */
-@media screen and (min-width: 768px) and (max-width: 991px) {
+/* Normalize all modals at tablet: same layout and spacing */
+@media screen and (min-width:768px) and (max-width:991px) {
+  /* Force a simple 1-col grid for consistency across all modals */
   .modal_right {
-    padding-top: 10px !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    row-gap: 20px;            /* keep between-item spacing consistent */
+    padding-top: 10px !important;  /* the only top spacing we use */
+  }
+  /* Ensure no modal "starts at row 2" anymore */
+  .modal_right > * {
+    grid-row: auto !important;     /* cancel any row: 2; or grid-area from Webflow */
+    grid-column: 1 / -1 !important;
+  }
+  .modal_right > *:first-child {
+    grid-row-start: 1 !important;  /* guarantee first item is row 1 (no purple band on top) */
+    margin-top: 0 !important;      /* prevent margin artifacts */
+  }
+
+  /* Some modals use a combo class; normalize them too */
+  .modal_right.flex-right {
+    padding-top: 10px !important;  /* same spacing */
   }
 }
 
-/* Mobile landscape and smaller (≤ 767px) */
-@media screen and (max-width: 767px) {
-  .modal_right {
+/* Desktop (≥ 992px): no top padding */
+@media screen and (min-width:992px) {
+  .modal_right,
+  .modal_right.flex-right {
     padding-top: 0 !important;
   }
 }
 
-/* Desktop (≥ 992px) */
-@media screen and (min-width: 992px) {
-  .modal_right {
+/* Mobile (≤ 767px): no top padding */
+@media screen and (max-width:767px) {
+  .modal_right,
+  .modal_right.flex-right {
     padding-top: 0 !important;
   }
 }
