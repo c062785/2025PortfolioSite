@@ -2194,7 +2194,7 @@ a {
   }
 
   .thumbnail_div {
-    padding: 40px 50px 50px;
+    padding: 0px 50px 50px;
   }
 
   .grid_thumbnails {
@@ -2285,7 +2285,7 @@ a {
   }
 
   .thumbnail_div {
-    padding-top: 40px;
+    padding-top: 0px;
     padding-left: 40px;
     padding-right: 40px;
   }
@@ -2485,7 +2485,7 @@ a {
   }
 
   .thumbnail_div {
-    padding-top: 40px;
+    padding-top: 15px;
     padding-left: 15px;
     padding-right: 15px;
   }
