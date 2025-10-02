@@ -2677,3 +2677,28 @@ a {
   backface-visibility: hidden;
   transform: translateZ(0);
 }
+
+/* Put near the end of your CSS */
+.popup-bg-2{
+  position: fixed;           /* make sure overlay covers the viewport */
+  inset: 0;
+  height: 100dvh;            /* iOS Safari correct viewport */
+  max-height: 100dvh;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fallback for older browsers that don't know 100dvh */
+@supports not (height: 100dvh) {
+  .popup-bg-2 {
+    height: 100vh;
+    max-height: 100vh;
+  }
+}
+
+/* Respect iOS safe areas so content doesn't sit under the home bar */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .popup-bg-2 {
+    padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  }
+}
+
