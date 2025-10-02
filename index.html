@@ -1086,15 +1086,22 @@
   });
 })();
 </script>
-
 <script>
   gsap.registerPlugin(ScrollTrigger, SplitText);
 
   gsap.matchMedia().add("(min-width: 992px)", () => {
-    const footer   = document.querySelector(".footer");
+    const footer = document.querySelector(".footer");
     if (!footer) return;
 
-    // Targets (robust selectors based on your export)
+    // --- Tweak these to taste ---
+    const LINE_STAGGER = 0.05;  // delay between lines in the top paragraph
+    const ITEM_DUR     = 0.6;   // duration for heading/button/logo fades
+    const ITEM_STAGGER = 0.12;  // spacing between heading, button, logo
+    const BG_DUR       = 0.7;   // background reveal duration
+    const BG_DELAY     = 0.30;  // when background starts (sec from timeline start)
+    // ----------------------------
+
+    // Targets
     const topText  = footer.querySelector(".about .h3.mobile-resize")
                    || footer.querySelector(".about .h3")
                    || footer.querySelector(".about [class*='h3']")
@@ -1104,65 +1111,71 @@
     const buttonEl = footer.querySelector(".footer---contact .email-link");
     const greyLogo = footer.querySelector(".rectangle-13");
 
-    // Gather all content that should fade in together
-    const revealEls = [topText, heading, buttonEl, greyLogo].filter(Boolean);
-
     const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // If you still want line-by-line on top text but start+end visible:
+    // 1) Top paragraph (line-by-line), keep visible after
     if (topText) {
-      const split = new SplitText(topText, { type: "lines" });
-      // Pre-hide split lines but NOT the element itself (so no blink)
       gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
-      gsap.set(split.lines, { autoAlpha: 0 });
+      const split = new SplitText(topText, { type: "lines" });
+      gsap.set(split.lines, { autoAlpha: 0, y: 16 });
 
-      // Fade ALL content together:
-      tl.to(split.lines, { autoAlpha: 1, duration: 0.6, stagger: 0.2 }, 0)
-        .add(() => {
-          split.revert();
-          topText.classList.add("is-revealed");
-        }, ">-0.05");
-    }
-
-    // Everything else fades in simultaneously (no movement)
-    if (revealEls.length) {
-      tl.to(revealEls.filter(el => el !== topText), {
+      tl.to(split.lines, {
         autoAlpha: 1,
-        duration: 0.6,
-        onComplete: () => revealEls.forEach(el => el.classList.add("is-revealed"))
+        y: 0,
+        duration: ITEM_DUR,
+        stagger: LINE_STAGGER,
+        clearProps: "transform"
       }, 0);
+
+      tl.add(() => {
+        split.revert();
+        topText.classList.add("is-revealed");
+      }, ">-0.05");
     }
 
-    // After content is visible, fade OUT the overlay to reveal the bg (bg never moves)
-    tl.to(footer, {
-      duration: 0.8,
-      onStart: () => footer.style.setProperty("--fadeOverlay", "1"),
-      onUpdate: function () {
-        // animate 1 -> 0
-        const p = 1 - this.progress();
-        footer.style.setProperty("--fadeOverlay", p.toFixed(3));
-      },
-      onComplete: () => footer.style.setProperty("--fadeOverlay", "0")
-    }, "+=0.05");
+    // 2) Heading + button + logo: fade with stagger (quick cascade)
+    const group = [heading, buttonEl, greyLogo].filter(Boolean);
+    if (group.length) {
+      tl.to(group, {
+        autoAlpha: 1,
+        y: 0,
+        duration: ITEM_DUR,
+        stagger: ITEM_STAGGER,
+        clearProps: "transform",
+        onComplete: () => group.forEach(el => el.classList.add("is-revealed"))
+      }, 0.10); // small offset from timeline start
+    }
 
-    // Scroll gating: only run when footer enters, not on tall load
-    const makeTrigger = () => ScrollTrigger.create({
+    // 3) Background reveal: fade OUT overlay that sits above your bg
+    // (Assumes your CSS defines --overlayOpacity on .footer)
+    tl.to(footer, {
+      duration: BG_DUR,
+      onStart:  () => footer.style.setProperty("--overlayOpacity", "1"),
+      onUpdate: function () {
+        const v = 1 - this.progress(); // 1 -> 0
+        footer.style.setProperty("--overlayOpacity", v.toFixed(3));
+      },
+      onComplete: () => footer.style.setProperty("--overlayOpacity", "0")
+    }, BG_DELAY);
+
+    // Scroll gating: only run when footer enters (prevents tall-screen autostart)
+    const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
+
+    const createTrigger = () => ScrollTrigger.create({
       trigger: footer,
       start: "top 80%",
       once: true,
       onEnter: () => tl.play()
     });
 
-    const inViewOnLoad = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
-
-    if (inViewOnLoad() && window.scrollY === 0) {
+    if (inView() && window.scrollY === 0) {
       const firstScroll = () => {
         window.removeEventListener("scroll", firstScroll, { passive: true });
         tl.play();
       };
       window.addEventListener("scroll", firstScroll, { passive: true, once: true });
     } else {
-      makeTrigger();
+      createTrigger();
     }
   });
 </script>
