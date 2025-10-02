@@ -1157,6 +1157,74 @@
     window.addEventListener("resize", onRotateOrResize, { passive: true });
   })();
 </script>
+<script>
+/**
+ * iPad/iOS rotate fix for hero H1:
+ * - clears inline styles that block media queries
+ * - neutralizes any SplitText/IX wrappers without destroying markup
+ * - refreshes ScrollTrigger so positions reflow
+ */
+(function () {
+  // Tweak this selector to exactly match your hero title.
+  // Add any other hero/title selectors after a comma.
+  const HERO_H1_SELECTOR = ".hero .h1, .header .h1";
+
+  // Utility: strip common inline styles that “stick” across breakpoints
+  function clearInlineStyles(el) {
+    // top-level hero H1 styles that often override media queries
+    ["font-size","line-height","letter-spacing","transform","opacity","visibility",
+     "translate","scale","rotate","will-change"].forEach(p => el.style.removeProperty(p));
+
+    // Child spans from SplitText/IX: neutralize their transforms/opacity
+    el.querySelectorAll("*").forEach(n => {
+      ["transform","opacity","visibility","translate","scale","rotate","will-change"].forEach(
+        p => n.style && n.style.removeProperty(p)
+      );
+      // If they’re SplitText wrappers (line/word/char), flatten them visually
+      // without destroying DOM (safer than innerHTML rewrite).
+      const cls = n.className || "";
+      if (typeof cls === "string" && /(line|lines|word|words|char|split)/i.test(cls)) {
+        n.style.display = "contents";
+      }
+    });
+  }
+
+  // Debounced handler so we run after Safari settles viewport
+  let timer;
+  function onRotateOrResize() {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      // Fix vh math on iOS
+      document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+
+      // Scrub inline styles & wrappers so portrait CSS takes over
+      document.querySelectorAll(HERO_H1_SELECTOR).forEach(el => clearInlineStyles(el));
+
+      // Recalculate scroll triggers after DOM/size changes
+      if (window.ScrollTrigger && ScrollTrigger.refresh) {
+        ScrollTrigger.refresh(true);
+      }
+    }, 150);
+  }
+
+  // iPad/iOS often only fires resize reliably; use both
+  window.addEventListener("orientationchange", onRotateOrResize, { passive: true });
+  window.addEventListener("resize", onRotateOrResize, { passive: true });
+
+  // Optional: run once on load to set --vh (harmless on other browsers)
+  onRotateOrResize();
+
+  // --- Last-resort fallback (uncomment if all else fails) ---
+  // Detect touch-enabled iPad (includes iPadOS on Safari desktop UA)
+  // const isiPad = /iPad|Macintosh/.test(navigator.userAgent) && "ontouchend" in document;
+  // if (isiPad) {
+  //   window.addEventListener("orientationchange", () => {
+  //     // full reload clears any stubborn runtime styles
+  //     location.reload();
+  //   }, { once: true });
+  // }
+})();
+</script>
 
 
 
