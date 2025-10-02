@@ -73,71 +73,23 @@
   }
 }
 
-/* Desktop-only */
+/* Desktop-only (single source of truth) */
 @media screen and (min-width: 992px) {
   .footer {
-    position: relative;
-    /* Keep your original background-image and settings from Webflow */
-    --fadeOverlay: 1;  /* 1 = bg hidden by overlay, 0 = bg visible */
-  }
-
-  /* Overlay that sits ABOVE the background but BELOW content.
-     We fade THIS overlay out to reveal the existing bg image (no bg swap, no shift). */
-  .footer::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: var(--footerFadeColor, #fff); /* set to your page bg color if not white */
-    opacity: var(--fadeOverlay);
-    pointer-events: none;
-    z-index: 0; /* below content */
-  }
-
-  /* Content above overlay */
-  .footer > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Pre-hide the animated items */
-  .footer .about .h3,
-  .footer .footer---contact .h1,
-  .footer .footer---contact .email-link,
-  .footer .rectangle-13 {
-    opacity: 0;
-    visibility: hidden;
-    will-change: opacity;
-  }
-
-  /* After reveal, they stay visible */
-  .footer .is-revealed {
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-}
-
-/* (Optional) if you hide bg on tablet/phone, keep your existing mobile rules */
-@media screen and (max-width: 991px) {
-  /* no changes needed here for the animation */
-}
-
-	/* Force the real bg back on desktop (in case an old rule turned it off) */
-@media screen and (min-width: 992px) {
-  .footer {
-    /* MAKE SURE this matches your actual asset path/name */
+    /* Keep your real Webflow background exactly as positioned */
     background-image: url("../images/Footer-Background.jpg") !important;
     background-repeat: no-repeat;
     background-position: 50% 0;
     background-size: auto;
 
-    /* Overlay defaults to 0 so bg is visible even if JS never runs */
+    position: relative;
+
+    /* Overlay starts at 0 so bg is visible even if JS never runs */
     --overlayOpacity: 0;
     --footerFadeColor: #fff; /* set to your page bg if not white */
-    position: relative;
   }
 
-  /* Overlay that we fade OUT (1 -> 0) to reveal bg.
-     With default 0, nothing is covered until JS briefly sets it to 1 to animate. */
+  /* SINGLE overlay we animate (0 → 1 → 0). No duplicate ::before anywhere else. */
   .footer::before {
     content: "";
     position: absolute;
@@ -145,10 +97,28 @@
     background: var(--footerFadeColor);
     opacity: var(--overlayOpacity);
     pointer-events: none;
-    z-index: 0; /* under content */
+    z-index: 0;               /* stays behind content */
+    will-change: opacity;
+    transform: translateZ(0); /* helps prevent flicker */
   }
 
+  /* Content above the overlay */
   .footer > * { position: relative; z-index: 1; }
+
+  /* Pre-hide animated pieces */
+  .footer .about .h3,
+  .footer .footer---contact .h1,
+  .footer .footer---contact .email-link,
+  .footer .rectangle-13 {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  /* Stay visible after animation */
+  .footer .is-revealed {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
 }
 
 
