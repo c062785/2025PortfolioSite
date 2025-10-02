@@ -121,6 +121,36 @@
   /* no changes needed here for the animation */
 }
 
+	/* Force the real bg back on desktop (in case an old rule turned it off) */
+@media screen and (min-width: 992px) {
+  .footer {
+    /* MAKE SURE this matches your actual asset path/name */
+    background-image: url("../images/Footer-Background.jpg") !important;
+    background-repeat: no-repeat;
+    background-position: 50% 0;
+    background-size: auto;
+
+    /* Overlay defaults to 0 so bg is visible even if JS never runs */
+    --overlayOpacity: 0;
+    --footerFadeColor: #fff; /* set to your page bg if not white */
+    position: relative;
+  }
+
+  /* Overlay that we fade OUT (1 -> 0) to reveal bg.
+     With default 0, nothing is covered until JS briefly sets it to 1 to animate. */
+  .footer::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--footerFadeColor);
+    opacity: var(--overlayOpacity);
+    pointer-events: none;
+    z-index: 0; /* under content */
+  }
+
+  .footer > * { position: relative; z-index: 1; }
+}
+
 
 </style>
 	
@@ -1086,20 +1116,21 @@
   });
 })();
 </script>
-<script>
+
+	<script>
   gsap.registerPlugin(ScrollTrigger, SplitText);
 
   gsap.matchMedia().add("(min-width: 992px)", () => {
     const footer = document.querySelector(".footer");
     if (!footer) return;
 
-    // --- Tweak these to taste ---
-    const LINE_STAGGER = 0.08;  // delay between lines in the top paragraph
-    const ITEM_DUR     = 1;   // duration for heading/button/logo fades
-    const ITEM_STAGGER = 1;  // spacing between heading, button, logo
-    const BG_DUR       = 0.4;   // background reveal duration
-    const BG_DELAY     = 0.30;  // when background starts (sec from timeline start)
-    // ----------------------------
+    // --- timing knobs you can tweak ---
+    const LINE_STAGGER = 0.05;  // lines in top paragraph
+    const ITEM_DUR     = 0.6;   // each item fade duration
+    const ITEM_STAGGER = 0.12;  // spacing between heading, button, logo
+    const BG_DUR       = 0.7;   // overlay fade duration
+    const BG_DELAY     = 0.30;  // when bg starts relative to timeline start
+    // ----------------------------------
 
     // Targets
     const topText  = footer.querySelector(".about .h3.mobile-resize")
@@ -1113,7 +1144,7 @@
 
     const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // 1) Top paragraph (line-by-line), keep visible after
+    // 1) Top paragraph line-by-line
     if (topText) {
       gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
       const split = new SplitText(topText, { type: "lines" });
@@ -1133,7 +1164,7 @@
       }, ">-0.05");
     }
 
-    // 2) Heading + button + logo: fade with stagger (quick cascade)
+    // 2) Heading + button + logo with stagger (quick ripple)
     const group = [heading, buttonEl, greyLogo].filter(Boolean);
     if (group.length) {
       tl.to(group, {
@@ -1143,11 +1174,10 @@
         stagger: ITEM_STAGGER,
         clearProps: "transform",
         onComplete: () => group.forEach(el => el.classList.add("is-revealed"))
-      }, 0.10); // small offset from timeline start
+      }, 0.10);
     }
 
-    // 3) Background reveal: fade OUT overlay that sits above your bg
-    // (Assumes your CSS defines --overlayOpacity on .footer)
+    // 3) BACKGROUND REVEAL (overlay 1 -> 0). Default CSS is 0, so bg is visible unless this runs.
     tl.to(footer, {
       duration: BG_DUR,
       onStart:  () => footer.style.setProperty("--overlayOpacity", "1"),
@@ -1158,7 +1188,7 @@
       onComplete: () => footer.style.setProperty("--overlayOpacity", "0")
     }, BG_DELAY);
 
-    // Scroll gating: only run when footer enters (prevents tall-screen autostart)
+    // Scroll gating (prevents autostart on super-tall screens)
     const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
 
     const createTrigger = () => ScrollTrigger.create({
@@ -1179,8 +1209,6 @@
     }
   });
 </script>
-
-
 	
 </body>
 </html>
