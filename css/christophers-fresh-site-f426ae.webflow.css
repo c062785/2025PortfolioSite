@@ -2818,3 +2818,17 @@ a {
   .hero, .header { height: 100vh; }
 }
 
+/* iPad PORTRAIT: force the tablet text sizing only in portrait.
+   (Images stay controlled by your normal Webflow breakpoints.) */
+@media screen and (min-device-width: 768px) and (max-device-width: 1366px) and (orientation: portrait) {
+  /* Your hero title is a <p class="h1"> inside .hero_flex-text */
+  .hero_flex-text .h1 {
+    /* match your tablet typography here */
+    font-size: clamp(26px, 3.5vw, 36px) !important;
+    line-height: 1.2 !important;
+    letter-spacing: normal !important;
+  }
+}
+
+/* iPad LANDSCAPE: no override — desktop styles apply naturally. */
+
