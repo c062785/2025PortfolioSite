@@ -933,23 +933,6 @@
   }, { passive: true });
 </script>
 <script>
-(function () {
-  if (!window.gsap || !window.ScrollTrigger) return;
-  gsap.registerPlugin(ScrollTrigger);
-
-  gsap.utils.toArray(".grid_thumbnails a.open-popup").forEach((el, i) => {
-    ScrollTrigger.create({
-      trigger: el,
-      start: "top 85%",
-      once: true,
-      onEnter: () => {
-        el.classList.add("revealed");
-      }
-    });
-  });
-})();
-</script>
-<script>
   // ---- Scroll lock helpers
   function lockScroll() {
     document.documentElement.classList.add('modal-open');
@@ -1005,6 +988,34 @@
     // if click is on the overlay itself (not inside modal content), unlock
     if (e.target === bg) setTimeout(unlockScroll, 200);
   }, { passive: true });
+</script>
+<script>
+(function () {
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Wait until header is fully loaded/animated
+  window.addEventListener("load", () => {
+    const header = document.querySelector("header") || document.querySelector(".header");
+
+    // optional: if header animates with GSAP, wait for its animation to finish
+    // you can delay triggers manually instead
+    const delayAfterHeader = 800; // ms delay to ensure header shows first
+
+    setTimeout(() => {
+      gsap.utils.toArray(".grid_thumbnails a.open-popup").forEach((el, i) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: "top 85%",
+          once: true,
+          onEnter: () => {
+            el.classList.add("revealed");
+          }
+        });
+      });
+    }, delayAfterHeader);
+  });
+})();
 </script>
 
 
