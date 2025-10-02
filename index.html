@@ -122,7 +122,19 @@
   will-change: opacity;
 }
 
+	/* Global pre-hide and reveal (all sizes) */
+.footer .about .h3,
+.footer .footer---contact .h1,
+.footer .footer---contact .email-link,
+.footer .rectangle-13 {
+  opacity: 0;
+  visibility: hidden;
+}
 
+.footer .is-revealed {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
 
 </style>
 	
@@ -1061,62 +1073,32 @@
   }, { passive: true });
 </script>
 <script>
-(function () {
-  if (!window.gsap || !window.ScrollTrigger) return;
-  gsap.registerPlugin(ScrollTrigger);
-
-  // Wait until header is fully loaded/animated
-  window.addEventListener("load", () => {
-    const header = document.querySelector("header") || document.querySelector(".header");
-
-    // optional: if header animates with GSAP, wait for its animation to finish
-    // you can delay triggers manually instead
-    const delayAfterHeader = 800; // ms delay to ensure header shows first
-
-    setTimeout(() => {
-      gsap.utils.toArray(".grid_thumbnails a.open-popup").forEach((el, i) => {
-        ScrollTrigger.create({
-          trigger: el,
-          start: "top 85%",
-          once: true,
-          onEnter: () => {
-            el.classList.add("revealed");
-          }
-        });
-      });
-    }, delayAfterHeader);
-  });
-})();
-</script>
-
-	<script>
   gsap.registerPlugin(ScrollTrigger, SplitText);
 
-  gsap.matchMedia().add("(min-width: 992px)", () => {
+  (function () {
     const footer = document.querySelector(".footer");
     if (!footer) return;
 
-    // --- timing knobs you can tweak ---
-    const LINE_STAGGER = 0.05;  // lines in top paragraph
-    const ITEM_DUR     = 0.6;   // each item fade duration
-    const ITEM_STAGGER = 0.12;  // spacing between heading, button, logo
-    const BG_DUR       = 0.7;   // overlay fade duration
-    const BG_DELAY     = 0.30;  // when bg starts relative to timeline start
-    // ----------------------------------
+    // Timing knobs
+    const LINE_STAGGER = 0.05;
+    const ITEM_DUR     = 0.6;
+    const ITEM_STAGGER = 0.12;
+    const BG_DUR       = 0.7;
+    const BG_DELAY     = 0.30;
 
     // Targets
     const topText  = footer.querySelector(".about .h3.mobile-resize")
                    || footer.querySelector(".about .h3")
                    || footer.querySelector(".about [class*='h3']")
                    || footer.querySelector(".about > *:first-child");
-
     const heading  = footer.querySelector(".footer---contact .h1");
     const buttonEl = footer.querySelector(".footer---contact .email-link");
     const greyLogo = footer.querySelector(".rectangle-13");
 
+    // Build ONE timeline for all sizes
     const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // 1) Top paragraph line-by-line
+    // 1) Top paragraph line-by-line (works on all sizes)
     if (topText) {
       gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
       const split = new SplitText(topText, { type: "lines" });
@@ -1136,7 +1118,7 @@
       }, ">-0.05");
     }
 
-    // 2) Heading + button + logo with stagger (quick ripple)
+    // 2) Heading + button + logo with a quick cascade (all sizes)
     const group = [heading, buttonEl, greyLogo].filter(Boolean);
     if (group.length) {
       tl.to(group, {
@@ -1149,15 +1131,17 @@
       }, 0.10);
     }
 
-    // 3) BACKGROUND REVEAL (overlay 1 -> 0). Default CSS is 0, so bg is visible unless this runs.
-// 3) BACKGROUND REVEAL (overlay 1 -> 0)
-tl.to(footer, {
-  duration: BG_DUR,
-  "--overlayOpacity": 0,   // 1 → 0 reveals the real bg
-  ease: "power2.out"
-}, BG_DELAY);
+    // 3) Background reveal ONLY on desktop
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 992px)", () => {
+      tl.to(footer, {
+        duration: BG_DUR,
+        "--overlayOpacity": 0,   // 1 → 0 reveals bg
+        ease: "power2.out"
+      }, BG_DELAY);
+    });
 
-    // Scroll gating (prevents autostart on super-tall screens)
+    // Scroll gating (works on all sizes)
     const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
 
     const createTrigger = () => ScrollTrigger.create({
@@ -1176,8 +1160,9 @@ tl.to(footer, {
     } else {
       createTrigger();
     }
-  });
+  })();
 </script>
+
 	
 </body>
 </html>
