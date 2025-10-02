@@ -1793,7 +1793,7 @@ a {
   flex-flow: column;
   justify-content: flex-start;
   align-items: stretch;
-  padding-top: 0px;
+  padding-top: 20px;
   display: flex;
 }
 
