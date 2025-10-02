@@ -1094,7 +1094,6 @@
     const footer   = document.querySelector(".footer");
     if (!footer) return;
 
-    // Targets (robust selectors based on your export)
     const topText  = footer.querySelector(".about .h3.mobile-resize")
                    || footer.querySelector(".about .h3")
                    || footer.querySelector(".about [class*='h3']")
@@ -1104,48 +1103,62 @@
     const buttonEl = footer.querySelector(".footer---contact .email-link");
     const greyLogo = footer.querySelector(".rectangle-13");
 
-    // Gather all content that should fade in together
-    const revealEls = [topText, heading, buttonEl, greyLogo].filter(Boolean);
-
     const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // If you still want line-by-line on top text but start+end visible:
+    // 1) Top paragraph line-by-line
     if (topText) {
+      gsap.set(topText, { autoAlpha: 1 });
       const split = new SplitText(topText, { type: "lines" });
-      // Pre-hide split lines but NOT the element itself (so no blink)
-      gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
-      gsap.set(split.lines, { autoAlpha: 0 });
+      gsap.set(split.lines, { autoAlpha: 0, y: 16 });
 
-      // Fade ALL content together:
-      tl.to(split.lines, { autoAlpha: 1, duration: 0.6, stagger: 0.0 }, 0)
-        .add(() => {
-          split.revert();
-          topText.classList.add("is-revealed");
-        }, ">-0.05");
-    }
-
-    // Everything else fades in simultaneously (no movement)
-    if (revealEls.length) {
-      tl.to(revealEls.filter(el => el !== topText), {
+      tl.to(split.lines, {
         autoAlpha: 1,
+        y: 0,
         duration: 0.6,
-        onComplete: () => revealEls.forEach(el => el.classList.add("is-revealed"))
-      }, 0);
+        stagger: 0.06,   // smaller stagger = quicker
+        clearProps: "transform"
+      }, 0); // start at time 0
+
+      tl.add(() => {
+        split.revert();
+        topText.classList.add("is-revealed");
+      }, ">-0.1");
     }
 
-    // After content is visible, fade OUT the overlay to reveal the bg (bg never moves)
+    // 2) Fade other elements in PARALLEL with slight offsets
+    const revealTogether = (el, offset = 0) => {
+      if (!el) return;
+      tl.fromTo(el,
+        { autoAlpha: 0, y: 16, visibility: "visible" },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.6,
+          clearProps: "transform",
+          onComplete: () => el.classList.add("is-revealed")
+        },
+        offset // all relative to 0, not sequential delays
+      );
+    };
+
+    revealTogether(heading, 0.1);
+    revealTogether(buttonEl, 0.15);
+    revealTogether(greyLogo, 0.2);
+
+    // 3) Footer background fades AFTER content
     tl.to(footer, {
       duration: 0.8,
-      onStart: () => footer.style.setProperty("--fadeOverlay", "1"),
+      onStart: () => footer.style.setProperty("--bgOpacity", 0),
       onUpdate: function () {
-        // animate 1 -> 0
-        const p = 1 - this.progress();
-        footer.style.setProperty("--fadeOverlay", p.toFixed(3));
+        footer.style.setProperty("--bgOpacity", this.progress().toFixed(3));
       },
-      onComplete: () => footer.style.setProperty("--fadeOverlay", "0")
-    }, "+=0.05");
+      onComplete: () => footer.style.setProperty("--bgOpacity", "1")
+    }, "+=0.2");
 
-    // Scroll gating: only run when footer enters, not on tall load
+    // Scroll gating
+    const isInViewNow = () =>
+      footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
+
     const makeTrigger = () => ScrollTrigger.create({
       trigger: footer,
       start: "top 80%",
@@ -1153,19 +1166,18 @@
       onEnter: () => tl.play()
     });
 
-    const inViewOnLoad = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
-
-    if (inViewOnLoad() && window.scrollY === 0) {
-      const firstScroll = () => {
-        window.removeEventListener("scroll", firstScroll, { passive: true });
+    if (isInViewNow() && window.scrollY === 0) {
+      const onFirstScroll = () => {
+        window.removeEventListener("scroll", onFirstScroll, { passive: true });
         tl.play();
       };
-      window.addEventListener("scroll", firstScroll, { passive: true, once: true });
+      window.addEventListener("scroll", onFirstScroll, { passive: true, once: true });
     } else {
       makeTrigger();
     }
   });
 </script>
+
 
 	
 </body>
