@@ -2677,3 +2677,11 @@ a {
   backface-visibility: hidden;
   transform: translateZ(0);
 }
+
+/* removing flex grid gap by having child start at 1 */
+@media (max-width: 991px){
+  /* Ensure auto placement and first item starts at row 1 */
+  .modal_right > * { grid-row: auto !important; grid-column: 1 / -1; }
+  .modal_right > *:first-child { grid-row-start: 1 !important; }
+}
+
