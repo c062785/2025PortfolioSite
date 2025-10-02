@@ -122,19 +122,7 @@
   will-change: opacity;
 }
 
-	/* Global pre-hide and reveal (all sizes) */
-.footer .about .h3,
-.footer .footer---contact .h1,
-.footer .footer---contact .email-link,
-.footer .rectangle-13 {
-  opacity: 0;
-  visibility: hidden;
-}
 
-.footer .is-revealed {
-  opacity: 1 !important;
-  visibility: visible !important;
-}
 
 </style>
 	
@@ -1073,92 +1061,142 @@
   }, { passive: true });
 </script>
 <script>
+(function () {
+  if (!window.gsap || !window.ScrollTrigger) return;
+  gsap.registerPlugin(ScrollTrigger);
+
+  // Wait until header is fully loaded/animated
+  window.addEventListener("load", () => {
+    const header = document.querySelector("header") || document.querySelector(".header");
+
+    // optional: if header animates with GSAP, wait for its animation to finish
+    // you can delay triggers manually instead
+    const delayAfterHeader = 800; // ms delay to ensure header shows first
+
+    setTimeout(() => {
+      gsap.utils.toArray(".grid_thumbnails a.open-popup").forEach((el, i) => {
+        ScrollTrigger.create({
+          trigger: el,
+          start: "top 85%",
+          once: true,
+          onEnter: () => {
+            el.classList.add("revealed");
+          }
+        });
+      });
+    }, delayAfterHeader);
+  });
+})();
+</script>
+<script>
   gsap.registerPlugin(ScrollTrigger, SplitText);
 
   (function () {
+    // ---------- TWEAKABLE TIMING ----------
+    const LINE_STAGGER = 0.05;  // delay between lines in the top footer paragraph
+    const ITEM_DUR     = 0.6;   // duration for footer text/button/logo fades
+    const ITEM_STAGGER = 0.12;  // spacing between heading, button, logo
+    const BG_DUR       = 0.7;   // footer background overlay fade duration
+    const BG_DELAY     = 0.30;  // when the overlay fade starts (seconds from TL start)
+    const THUMB_DUR    = 0.5;   // thumbnail fade duration
+    const THUMB_STAG   = 0.08;  // thumbnail stagger
+    // -------------------------------------
+
+    // ===== FOOTER TIMELINE (all breakpoints) =====
     const footer = document.querySelector(".footer");
-    if (!footer) return;
+    if (footer) {
+      const topText  = footer.querySelector(".about .h3.mobile-resize")
+                     || footer.querySelector(".about .h3")
+                     || footer.querySelector(".about [class*='h3']")
+                     || footer.querySelector(".about > *:first-child");
+      const heading  = footer.querySelector(".footer---contact .h1");
+      const buttonEl = footer.querySelector(".footer---contact .email-link");
+      const greyLogo = footer.querySelector(".rectangle-13");
 
-    // Timing knobs
-    const LINE_STAGGER = 0.05;
-    const ITEM_DUR     = 0.6;
-    const ITEM_STAGGER = 0.12;
-    const BG_DUR       = 0.7;
-    const BG_DELAY     = 0.30;
+      const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // Targets
-    const topText  = footer.querySelector(".about .h3.mobile-resize")
-                   || footer.querySelector(".about .h3")
-                   || footer.querySelector(".about [class*='h3']")
-                   || footer.querySelector(".about > *:first-child");
-    const heading  = footer.querySelector(".footer---contact .h1");
-    const buttonEl = footer.querySelector(".footer---contact .email-link");
-    const greyLogo = footer.querySelector(".rectangle-13");
+      // 1) Top paragraph lines
+      if (topText) {
+        gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
+        const split = new SplitText(topText, { type: "lines" });
+        gsap.set(split.lines, { autoAlpha: 0, y: 16 });
 
-    // Build ONE timeline for all sizes
-    const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
+        tl.to(split.lines, {
+          autoAlpha: 1,
+          y: 0,
+          duration: ITEM_DUR,
+          stagger: LINE_STAGGER,
+          clearProps: "transform"
+        }, 0);
 
-    // 1) Top paragraph line-by-line (works on all sizes)
-    if (topText) {
-      gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
-      const split = new SplitText(topText, { type: "lines" });
-      gsap.set(split.lines, { autoAlpha: 0, y: 16 });
+        tl.add(() => {
+          split.revert();
+          topText.classList.add("is-revealed");
+        }, ">-0.05");
+      }
 
-      tl.to(split.lines, {
-        autoAlpha: 1,
-        y: 0,
-        duration: ITEM_DUR,
-        stagger: LINE_STAGGER,
-        clearProps: "transform"
-      }, 0);
+      // 2) Heading + button + logo (quick cascade)
+      const group = [heading, buttonEl, greyLogo].filter(Boolean);
+      if (group.length) {
+        tl.to(group, {
+          autoAlpha: 1,
+          y: 0,
+          duration: ITEM_DUR,
+          stagger: ITEM_STAGGER,
+          clearProps: "transform",
+          onComplete: () => group.forEach(el => el.classList.add("is-revealed"))
+        }, 0.10);
+      }
 
-      tl.add(() => {
-        split.revert();
-        topText.classList.add("is-revealed");
-      }, ">-0.05");
-    }
-
-    // 2) Heading + button + logo with a quick cascade (all sizes)
-    const group = [heading, buttonEl, greyLogo].filter(Boolean);
-    if (group.length) {
-      tl.to(group, {
-        autoAlpha: 1,
-        y: 0,
-        duration: ITEM_DUR,
-        stagger: ITEM_STAGGER,
-        clearProps: "transform",
-        onComplete: () => group.forEach(el => el.classList.add("is-revealed"))
-      }, 0.10);
-    }
-
-    // 3) Background reveal ONLY on desktop
-    const mm = gsap.matchMedia();
-    mm.add("(min-width: 992px)", () => {
+      // 3) BACKGROUND REVEAL (overlay 1 -> 0) — runs everywhere; on tablet/mobile your CSS hides bg anyway
       tl.to(footer, {
         duration: BG_DUR,
-        "--overlayOpacity": 0,   // 1 → 0 reveals bg
+        "--overlayOpacity": 0,   // CSS var on .footer; starts at 1 in your desktop CSS
         ease: "power2.out"
       }, BG_DELAY);
-    });
 
-    // Scroll gating (works on all sizes)
-    const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
+      // Scroll gating (prevents instant play on super-tall screens)
+      const inView = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
 
-    const createTrigger = () => ScrollTrigger.create({
-      trigger: footer,
-      start: "top 80%",
-      once: true,
-      onEnter: () => tl.play()
-    });
+      const trigger = ScrollTrigger.create({
+        trigger: footer,
+        start: "top 80%",
+        once: true,
+        onEnter: () => tl.play()
+      });
 
-    if (inView() && window.scrollY === 0) {
-      const firstScroll = () => {
-        window.removeEventListener("scroll", firstScroll, { passive: true });
-        tl.play();
-      };
-      window.addEventListener("scroll", firstScroll, { passive: true, once: true });
-    } else {
-      createTrigger();
+      if (inView() && window.scrollY === 0) {
+        const firstScroll = () => {
+          window.removeEventListener("scroll", firstScroll, { passive: true });
+          tl.play();
+        };
+        window.addEventListener("scroll", firstScroll, { passive: true, once: true });
+      }
+    }
+
+    // ===== THUMBNAIL GRID SCROLL ANIMATION (all breakpoints) =====
+    const grid = document.querySelector(".grid_thumbnails");
+    if (grid) {
+      const thumbs = gsap.utils.toArray(".grid_thumbnails a.open-popup");
+      if (thumbs.length) {
+        // match your pre-hide CSS (opacity:0; translateY(24px))
+        gsap.set(thumbs, { autoAlpha: 0, y: 24 });
+
+        gsap.to(thumbs, {
+          autoAlpha: 1,
+          y: 0,
+          duration: THUMB_DUR,
+          stagger: THUMB_STAG,
+          ease: "power2.out",
+          clearProps: "transform",
+          scrollTrigger: {
+            trigger: grid,
+            start: "top 85%",
+            once: true
+          },
+          onComplete: () => thumbs.forEach(el => el.classList.add("revealed"))
+        });
+      }
     }
   })();
 </script>
