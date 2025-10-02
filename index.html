@@ -1105,9 +1105,11 @@
 
     const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // 1) Top paragraph line-by-line
+    // 1) Top paragraph lines
     if (topText) {
+      // ensure base element starts visible for splitting
       gsap.set(topText, { autoAlpha: 1 });
+
       const split = new SplitText(topText, { type: "lines" });
       gsap.set(split.lines, { autoAlpha: 0, y: 16 });
 
@@ -1115,18 +1117,20 @@
         autoAlpha: 1,
         y: 0,
         duration: 0.6,
-        stagger: 0.06,   // smaller stagger = quicker
+        stagger: 0.08,
+        // IMPORTANT: do NOT clear opacity; leave it visible
         clearProps: "transform"
-      }, 0); // start at time 0
+      });
 
+      // revert wrappers but keep parent visible + mark revealed
       tl.add(() => {
         split.revert();
         topText.classList.add("is-revealed");
-      }, ">-0.1");
+      }, ">");
     }
 
-    // 2) Fade other elements in PARALLEL with slight offsets
-    const revealTogether = (el, offset = 0) => {
+    // helper to animate + mark revealed
+    const reveal = (el, delay = 0) => {
       if (!el) return;
       tl.fromTo(el,
         { autoAlpha: 0, y: 16, visibility: "visible" },
@@ -1134,18 +1138,21 @@
           autoAlpha: 1,
           y: 0,
           duration: 0.6,
-          clearProps: "transform",
+          clearProps: "transform",   // << don't clear opacity/visibility
           onComplete: () => el.classList.add("is-revealed")
         },
-        offset // all relative to 0, not sequential delays
+        `+=${delay}`
       );
     };
 
-    revealTogether(heading, 0.1);
-    revealTogether(buttonEl, 0.15);
-    revealTogether(greyLogo, 0.2);
+    // 2) H1
+    reveal(heading, 0.1);
+    // 3) Button
+    reveal(buttonEl, 0.05);
+    // 4) Grey logo
+    reveal(greyLogo, 0.05);
 
-    // 3) Footer background fades AFTER content
+    // 5) Footer background fade (CSS var stays at 1; no clearing)
     tl.to(footer, {
       duration: 0.8,
       onStart: () => footer.style.setProperty("--bgOpacity", 0),
@@ -1153,9 +1160,9 @@
         footer.style.setProperty("--bgOpacity", this.progress().toFixed(3));
       },
       onComplete: () => footer.style.setProperty("--bgOpacity", "1")
-    }, "+=0.2");
+    }, "+=0.05");
 
-    // Scroll gating
+    // Scroll gating (don’t auto-fire on super-tall screens until user scrolls)
     const isInViewNow = () =>
       footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
 
@@ -1177,6 +1184,7 @@
     }
   });
 </script>
+
 
 
 	
