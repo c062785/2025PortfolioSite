@@ -2800,14 +2800,17 @@ a {
   }
 }
 
-/* iOS-safe pre-hide for the mobile footer title */
-.footer .about .h3.mobile-resize {
-  visibility: hidden !important;  /* measurable but not paintable */
-  opacity: 0 !important;
-}
+/* iOS-safe: keep SplitText lines hidden until JS reveals them */
+.splitline { opacity: 0; }
 
-/* SplitText lines start hidden (prevents 1-frame flash) */
-.splitline { 
-  opacity: 0 !important;
-}
+/* Global pre-hide for footer bits (all sizes) */
+.footer .about .h3,
+.footer .footer---contact .h1,
+.footer .footer---contact .email-link,
+.footer .rectangle-13 { opacity: 0; visibility: hidden; }
+
+.footer .is-revealed { opacity: 1 !important; visibility: visible !important; }
+
+/* iOS viewport & modal fixes you added earlier stay at the end of CSS */
+
 
