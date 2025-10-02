@@ -989,15 +989,15 @@
   gsap.registerPlugin(ScrollTrigger, SplitText);
 
   (function () {
-    // -------- TWEAKABLE TIMING --------
-    const LINE_STAGGER = 0.05;  // delay between lines in the top paragraph
+    // ---------- TWEAKABLE TIMING ----------
+    const LINE_STAGGER = 0.05;  // delay between lines in the top footer paragraph
     const ITEM_DUR     = 0.6;   // duration for heading/button/logo fades
     const ITEM_STAGGER = 0.12;  // spacing between heading, button, logo
     const BG_DUR       = 0.7;   // footer background overlay fade duration
     const BG_DELAY     = 0.30;  // when the overlay fade starts (sec from TL start)
     const THUMB_DUR    = 0.5;   // thumbnail fade duration
     const THUMB_STAG   = 0.08;  // thumbnail stagger
-    // ----------------------------------
+    // -------------------------------------
 
     // ===== FOOTER =====
     const footer   = document.querySelector(".footer");
@@ -1010,19 +1010,22 @@
       const buttonEl = footer.querySelector(".footer---contact .email-link");
       const greyLogo = footer.querySelector(".rectangle-13");
 
-      // PREP: pre-split lines and hide them via CSS (.splitline { opacity:0; })
-      // This prevents Safari/iOS from flashing the paragraph before animation.
+      // PREP (iOS-safe): pre-split lines and keep them hidden via CSS (.splitline { opacity:0; })
+      // We do NOT show the parent here; Safari will not paint lines because they're opacity:0
       let split = null;
       if (topText) {
         split = new SplitText(topText, { type: "lines", linesClass: "splitline" });
-        gsap.set(topText, { visibility: "visible" });
         gsap.set(split.lines, { y: 16 }); // ready to animate up
       }
 
       const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-      // 1) Reveal the pre-split lines (line-by-line)
+      // 1) Top paragraph (NO early flash on iOS)
       if (split) {
+        // Make the parent visible exactly at t=0 so lines can appear
+        tl.set(topText, { visibility: "visible", opacity: 1 }, 0);
+
+        // Reveal the pre-hidden lines
         tl.to(split.lines, {
           opacity: 1,
           y: 0,
@@ -1032,8 +1035,9 @@
           immediateRender: false
         }, 0);
 
+        // Clean up wrappers; lock final visibility
         tl.add(() => {
-          split.revert();                 // clean DOM
+          split.revert();
           topText.classList.add("is-revealed");
         }, ">-0.05");
       }
@@ -1044,7 +1048,8 @@
         tl.fromTo(group,
           { opacity: 0, y: 16, visibility: "visible" },
           {
-            opacity: 1, y: 0,
+            opacity: 1,
+            y: 0,
             duration: ITEM_DUR,
             stagger: ITEM_STAGGER,
             clearProps: "transform",
@@ -1054,7 +1059,7 @@
         );
       }
 
-      // 3) Background overlay fade (1 -> 0 reveals your bg)
+      // 3) Footer background overlay fade (1 -> 0 reveals your bg)
       // Assumes your desktop CSS sets: .footer { --overlayOpacity: 1; } and ::before uses it.
       tl.to(footer, {
         duration: BG_DUR,
@@ -1086,7 +1091,7 @@
     if (grid) {
       const thumbs = gsap.utils.toArray(".grid_thumbnails a.open-popup");
       if (thumbs.length) {
-        // match your pre-hide CSS (opacity:0; translateY(24px))
+        // Match your pre-hide CSS (opacity:0; translateY(24px))
         gsap.set(thumbs, { autoAlpha: 0, y: 24 });
 
         gsap.to(thumbs, {
@@ -1107,6 +1112,7 @@
     }
   })();
 </script>
+
 
 
 	
