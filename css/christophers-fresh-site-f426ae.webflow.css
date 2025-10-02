@@ -2818,3 +2818,28 @@ a {
   .hero, .header { height: 100vh; }
 }
 
+/* iPad/iPadOS desktop-site viewport guard */
+@media screen and (max-width: 1080px) {
+  /* mirror your tablet intent even when viewport > 991px */
+  .hero-img { 
+    display: none !important; 
+    position: static !important;
+    max-height: 450px !important;
+  }
+  .hero-photo-2 { 
+    display: block !important; 
+    max-height: 450px !important;
+  }
+  .hero_flex-text {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 100% !important;
+    text-align: left; /* or center if that's your tablet look */
+  }
+  /* scale the hero title reasonably on these widths */
+  .h1 {
+    font-size: clamp(26px, 3.5vw, 36px);
+    line-height: 1.2;
+  }
+}
+
