@@ -142,8 +142,8 @@ a {
   justify-content: center;
   align-items: center;
   max-width: 1240px;
-  padding-top: 60px;
-  padding-bottom: 60px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   text-decoration: none;
   display: flex;
   position: relative;
