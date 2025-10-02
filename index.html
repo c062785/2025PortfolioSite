@@ -77,57 +77,50 @@
 @media screen and (min-width: 992px) {
   .footer {
     position: relative;
-    background-image: none !important;  /* we fade a pseudo bg instead */
-    --bgOpacity: 0;                     /* 0..1 animated by GSAP */
+    /* Keep your original background-image and settings from Webflow */
+    --fadeOverlay: 1;  /* 1 = bg hidden by overlay, 0 = bg visible */
   }
 
-  /* Background BEHIND content */
+  /* Overlay that sits ABOVE the background but BELOW content.
+     We fade THIS overlay out to reveal the existing bg image (no bg swap, no shift). */
   .footer::before {
     content: "";
     position: absolute;
     inset: 0;
-    background-image: url("../images/Footer-Background.jpg");
-    background-repeat: no-repeat;
-    background-position: 50% 0;
-    background-size: auto;
-    opacity: var(--bgOpacity);
+    background: var(--footerFadeColor, #fff); /* set to your page bg color if not white */
+    opacity: var(--fadeOverlay);
     pointer-events: none;
-    z-index: 0;
+    z-index: 0; /* below content */
   }
-  .footer > * { position: relative; z-index: 1; }
 
-  /* Pre-hide pieces (no !important so JS can override) */
-  .footer .about .h3,                    /* includes .h3.mobile-resize */
-  .footer .footer---contact .h1,
-  .footer .footer---contact .email-link,
-  .footer .rectangle-13 {
-    opacity: 0;
-    visibility: hidden;
-    will-change: transform, opacity;
+  /* Content above overlay */
+  .footer > * {
+    position: relative;
+    z-index: 1;
   }
-}
 
-/* Keep the native bg off on tablet and below if desired */
-@media screen and (max-width: 991px) {
-  .footer { background-image: none !important; }
-}
-
-@media screen and (min-width: 992px) {
-  /* existing pre-hide… */
+  /* Pre-hide the animated items */
   .footer .about .h3,
   .footer .footer---contact .h1,
   .footer .footer---contact .email-link,
   .footer .rectangle-13 {
     opacity: 0;
     visibility: hidden;
+    will-change: opacity;
   }
 
-  /* NEW: once JS adds this class, items stay visible */
+  /* After reveal, they stay visible */
   .footer .is-revealed {
     opacity: 1 !important;
     visibility: visible !important;
   }
 }
+
+/* (Optional) if you hide bg on tablet/phone, keep your existing mobile rules */
+@media screen and (max-width: 991px) {
+  /* no changes needed here for the animation */
+}
+
 
 </style>
 	
@@ -1101,6 +1094,7 @@
     const footer   = document.querySelector(".footer");
     if (!footer) return;
 
+    // Targets (robust selectors based on your export)
     const topText  = footer.querySelector(".about .h3.mobile-resize")
                    || footer.querySelector(".about .h3")
                    || footer.querySelector(".about [class*='h3']")
@@ -1110,69 +1104,48 @@
     const buttonEl = footer.querySelector(".footer---contact .email-link");
     const greyLogo = footer.querySelector(".rectangle-13");
 
+    // Gather all content that should fade in together
+    const revealEls = [topText, heading, buttonEl, greyLogo].filter(Boolean);
+
     const tl = gsap.timeline({ defaults: { ease: "power2.out" }, paused: true });
 
-    // 1) Top paragraph lines
+    // If you still want line-by-line on top text but start+end visible:
     if (topText) {
-      // ensure base element starts visible for splitting
-      gsap.set(topText, { autoAlpha: 1 });
-
       const split = new SplitText(topText, { type: "lines" });
-      gsap.set(split.lines, { autoAlpha: 0, y: 16 });
+      // Pre-hide split lines but NOT the element itself (so no blink)
+      gsap.set(topText, { autoAlpha: 1, visibility: "visible" });
+      gsap.set(split.lines, { autoAlpha: 0 });
 
-      tl.to(split.lines, {
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.6,
-        stagger: 0.08,
-        // IMPORTANT: do NOT clear opacity; leave it visible
-        clearProps: "transform"
-      });
-
-      // revert wrappers but keep parent visible + mark revealed
-      tl.add(() => {
-        split.revert();
-        topText.classList.add("is-revealed");
-      }, ">");
+      // Fade ALL content together:
+      tl.to(split.lines, { autoAlpha: 1, duration: 0.6, stagger: 0.0 }, 0)
+        .add(() => {
+          split.revert();
+          topText.classList.add("is-revealed");
+        }, ">-0.05");
     }
 
-    // helper to animate + mark revealed
-    const reveal = (el, delay = 0) => {
-      if (!el) return;
-      tl.fromTo(el,
-        { autoAlpha: 0, y: 16, visibility: "visible" },
-        {
-          autoAlpha: 1,
-          y: 0,
-          duration: 0.6,
-          clearProps: "transform",   // << don't clear opacity/visibility
-          onComplete: () => el.classList.add("is-revealed")
-        },
-        `+=${delay}`
-      );
-    };
+    // Everything else fades in simultaneously (no movement)
+    if (revealEls.length) {
+      tl.to(revealEls.filter(el => el !== topText), {
+        autoAlpha: 1,
+        duration: 0.6,
+        onComplete: () => revealEls.forEach(el => el.classList.add("is-revealed"))
+      }, 0);
+    }
 
-    // 2) H1
-    reveal(heading, 0.1);
-    // 3) Button
-    reveal(buttonEl, 0.05);
-    // 4) Grey logo
-    reveal(greyLogo, 0.05);
-
-    // 5) Footer background fade (CSS var stays at 1; no clearing)
+    // After content is visible, fade OUT the overlay to reveal the bg (bg never moves)
     tl.to(footer, {
       duration: 0.8,
-      onStart: () => footer.style.setProperty("--bgOpacity", 0),
+      onStart: () => footer.style.setProperty("--fadeOverlay", "1"),
       onUpdate: function () {
-        footer.style.setProperty("--bgOpacity", this.progress().toFixed(3));
+        // animate 1 -> 0
+        const p = 1 - this.progress();
+        footer.style.setProperty("--fadeOverlay", p.toFixed(3));
       },
-      onComplete: () => footer.style.setProperty("--bgOpacity", "1")
+      onComplete: () => footer.style.setProperty("--fadeOverlay", "0")
     }, "+=0.05");
 
-    // Scroll gating (don’t auto-fire on super-tall screens until user scrolls)
-    const isInViewNow = () =>
-      footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
-
+    // Scroll gating: only run when footer enters, not on tall load
     const makeTrigger = () => ScrollTrigger.create({
       trigger: footer,
       start: "top 80%",
@@ -1180,17 +1153,20 @@
       onEnter: () => tl.play()
     });
 
-    if (isInViewNow() && window.scrollY === 0) {
-      const onFirstScroll = () => {
-        window.removeEventListener("scroll", onFirstScroll, { passive: true });
+    const inViewOnLoad = () => footer.getBoundingClientRect().top <= window.innerHeight * 0.8;
+
+    if (inViewOnLoad() && window.scrollY === 0) {
+      const firstScroll = () => {
+        window.removeEventListener("scroll", firstScroll, { passive: true });
         tl.play();
       };
-      window.addEventListener("scroll", onFirstScroll, { passive: true, once: true });
+      window.addEventListener("scroll", firstScroll, { passive: true, once: true });
     } else {
       makeTrigger();
     }
   });
 </script>
+
 	
 </body>
 </html>
