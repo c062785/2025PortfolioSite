@@ -1112,6 +1112,51 @@
     }
   })();
 </script>
+<script>
+  (function () {
+    // Adjust selectors to match your hero H1 & any other titles that get animated
+    const HERO_H1_SELECTOR = ".hero .h1, .header .h1";
+
+    let rotateTimer;
+    function onRotateOrResize() {
+      clearTimeout(rotateTimer);
+      rotateTimer = setTimeout(() => {
+        // 1) iOS recalculates viewport units on rotate
+        document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px");
+
+        // 2) Remove inline styles that block media queries from taking effect
+        document.querySelectorAll(HERO_H1_SELECTOR).forEach(el => {
+          // nuke only the usual culprits
+          el.style.fontSize = "";
+          el.style.lineHeight = "";
+          el.style.letterSpacing = "";
+          el.style.transform = "";
+          el.style.opacity = "";
+          el.style.visibility = "";
+        });
+
+        // 3) If you used SplitText on the hero earlier, revert & (optionally) re-split
+        if (window.SplitText) {
+          document.querySelectorAll(HERO_H1_SELECTOR).forEach(el => {
+            // If it was split previously, revert wrappers (common pattern)
+            if (el._split) { try { el._split.revert(); } catch(e){} el._split = null; }
+            // Optional: re-split for your effect after rotate (uncomment if needed)
+            // el._split = new SplitText(el, { type: "lines" });
+          });
+        }
+
+        // 4) Let ScrollTrigger recalc measurements after DOM/size changes
+        if (window.ScrollTrigger && ScrollTrigger.refresh) {
+          ScrollTrigger.refresh(true);
+        }
+      }, 150); // debounce a hair so iPad settles
+    }
+
+    // Handle both: some iPads fire only resize reliably
+    window.addEventListener("orientationchange", onRotateOrResize, { passive: true });
+    window.addEventListener("resize", onRotateOrResize, { passive: true });
+  })();
+</script>
 
 
 
