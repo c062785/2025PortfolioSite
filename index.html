@@ -24,36 +24,28 @@
   <link href="images/favicon.png" rel="shortcut icon" type="image/x-icon">
   <link href="images/webclip.png" rel="apple-touch-icon">
 <style>
-/* Start hidden for GSAP reveal */
-.grid_thumbnails .w-clearfix {
+/* Thumbnails start hidden for GSAP */
+.grid_thumbnails a.open-popup {
   opacity: 0;
   transform: translateY(24px);
   will-change: transform, opacity;
-  transition: transform 0.22s ease;
 }
 
-/* Revealed state */
-.grid_thumbnails .w-clearfix.revealed {
+/* Revealed state — ease in */
+.grid_thumbnails a.open-popup.revealed {
   opacity: 1 !important;
   transform: none !important;
   visibility: visible !important;
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-/* Hover: grow whole card (image + text), no shadow */
-@media (hover:hover) and (pointer:fine) {
-  .grid_thumbnails .w-clearfix:hover {
-    transform: scale(1.20); /* 20% grow */
-    transition: transform 0.22s ease;
-  }
-}
-
-/* Prevent scale clipping */
+/* Prevent clipping */
 .grid_thumbnails { overflow: visible; }
 
 /* Cosmetic: prevent scrollbars shifting layout */
 .modal-open { overscroll-behavior: contain; }
 
-/* Buttons hover (unchanged) */
+/* ✅ Buttons keep their hover scaling */
 @media (hover:hover) and (pointer:fine) {
   .red_button:hover,
   .button.w-button:hover {
@@ -61,7 +53,8 @@
     transition: transform 0.22s ease;
   }
 }
-</style>	
+</style>
+	
 </head>
 <body class="body">
   <div style="display:none" class="lagree_modal">
