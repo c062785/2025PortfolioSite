@@ -2832,3 +2832,20 @@ a {
 
 /* iPad LANDSCAPE: no override — desktop styles apply naturally. */
 
+/* 16:9 responsive box */
+.video-box{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;     /* modern way to keep 16:9 */
+  overflow: hidden;
+}
+/* Make the video cover the box and center it */
+.bg-video{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;         /* fills without distortion; crops if needed */
+}
+/* If you prefer letterboxing instead of cropping, swap to: */
+/* .bg-video { object-fit: contain; background:#000; } */
