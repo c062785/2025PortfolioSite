@@ -784,24 +784,23 @@
 
 <script>
 window.addEventListener('load', function () {
-  // If the hero (and children) are still inline-hidden after load, unstick them.
   const hero = document.querySelector('.hero');
-  if (hero) {
-    setTimeout(() => {
-      hero.querySelectorAll('[style*="opacity:0"], [style*="opacity: 0"], [style*="transform"]').forEach(el => {
-        el.style.removeProperty('opacity');
-        el.style.removeProperty('transform');
-        el.style.visibility = 'visible';
-      });
-    }, 220);
-  }
+  if (!hero) return;
 
-  // Recalculate any ScrollTriggers after Webflow & images settle
-  if (window.ScrollTrigger && ScrollTrigger.refresh) {
-    requestAnimationFrame(() => ScrollTrigger.refresh(true));
-  }
+  // If Webflow's initial hidden state lingers, clear it
+  setTimeout(() => {
+    const maybeHidden = hero.querySelectorAll(
+      '[style*="opacity:0"], [style*="opacity: 0"], [style*="transform"]'
+    );
+    maybeHidden.forEach(el => {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('transform');
+      el.style.visibility = 'visible';
+    });
+  }, 250);
 });
 </script>
+
 
 
 	<script>
