@@ -1158,6 +1158,28 @@
     window.addEventListener("resize", onRotateOrResize, { passive: true });
   })();
 </script>
+<script>
+  // Hero failsafe: if the hero is still invisible shortly after load, unstick it.
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      var hero = document.querySelector('.hero');
+      if (!hero) return;
+
+      // If the main headline or image is still opacity:0, clear just the blocking inline styles.
+      var key = hero.querySelector('.h1, .hero-img, .hero-photo, .hero-photo-2');
+      if (!key) return;
+
+      var computed = window.getComputedStyle(key);
+      if (computed && computed.opacity === '0') {
+        hero.querySelectorAll('[style*="opacity:0"], [style*="opacity: 0"], [style*="transform"]').forEach(function (el) {
+          el.style.removeProperty('opacity');
+          el.style.removeProperty('transform');
+          el.style.visibility = 'visible';
+        });
+      }
+    }, 350); // small delay so Webflow’s initial state can apply first
+  });
+</script>
 
 
 </body>
