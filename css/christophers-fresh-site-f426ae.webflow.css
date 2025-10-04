@@ -2850,3 +2850,16 @@ a {
 /* If you prefer letterboxing instead of cropping, swap to: */
 /* .bg-video { object-fit: contain; background:#000; } */
 
+/* Firefox hero failsafe */
+@-moz-document url-prefix() {
+  .hero, 
+  .hero .h1, 
+  .hero-img, 
+  .hero-photo, 
+  .hero-photo-2 {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
+
+
