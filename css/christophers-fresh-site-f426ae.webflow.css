@@ -2850,12 +2850,3 @@ a {
 /* If you prefer letterboxing instead of cropping, swap to: */
 /* .bg-video { object-fit: contain; background:#000; } */
 
-/* Force hero image visibility across browsers */
-.hero,
-.hero-img,
-.hero-photo {
-  min-height: 300px;   /* guarantees space so Firefox won't collapse */
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
